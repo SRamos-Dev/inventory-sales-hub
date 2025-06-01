@@ -19,7 +19,7 @@ public class Supplier {
     @Size(min = 10, max = 150, message = "Contact info must be between 10 and 150 characters")
     private String contactInfo; // Restricts contact details length
 
-    @OneToMany(mappedBy = "suplier")
+    @OneToMany(mappedBy = "supplier")
     private List<Product> products;
 }
 
