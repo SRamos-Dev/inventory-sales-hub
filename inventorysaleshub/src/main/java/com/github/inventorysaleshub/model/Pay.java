@@ -1,18 +1,25 @@
 package com.github.inventorysaleshub.model;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.*;
 
 @Entity
 public class Pay {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String method; // efectivo, tarjeta, etc.
-    private String status; // pagado, pendiente, etc.
+    @NotBlank(message = "Payment method is required")
+    @Pattern(regexp = "CASH|CARD|TRANSFER", message = "Payment method must be CASH, CARD, or TRANSFER")
+    private String method; // Restricts allowed payment methods
+
+    @NotBlank(message = "Payment status is required")
+    @Pattern(regexp = "PENDING|PAID|REFUNDED|CANCELED", message = "Status must be PENDING, PAID, REFUNDED, or CANCELED")
+    private String status; // Limits valid status values
 
     @OneToOne
     @JoinColumn(name = "order_id")
-    private Order order;
-
+    @NotNull(message = "Payment must be associated with an order")
+    private Order order; // Ensures every payment is linked to an order
 }

@@ -1,16 +1,20 @@
 package com.github.inventorysaleshub.model;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.*;
 import java.util.List;
 
 @Entity
 public class Role {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    private String name; // Ej: "ADMIN", "USER"
+
+    @NotBlank(message = "Role name cannot be empty")
+    @Pattern(regexp = "ADMIN|USER|MANAGER|GUEST", message = "Role must be one of: ADMIN, USER, MANAGER, GUEST")
+    private String name; // Restricts valid roles
 
     @OneToMany(mappedBy = "role")
     private List<User> users;
-
 }
