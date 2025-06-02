@@ -2,6 +2,7 @@ package com.github.inventorysaleshub.model;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
+
 import java.util.List;
 
 @Entity
@@ -46,4 +47,29 @@ public class Product {
     // Relationship with ProductHistory
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL)
     private List<ProductHistory> history;
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public double getPrice() {
+        return price;
+    }
+
+    public void setPrice(double price) {
+        this.price = price;
+    }
+
+    public int getStock() {
+        return stock;
+    }
+
+    public void setStock(int stock) {
+        this.stock = stock;
+    }
+
 }
