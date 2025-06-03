@@ -23,6 +23,7 @@ public class ProductHistory {
     @NotNull(message = "Product must be associated")
     private Product product; // Guarantees every history entry is linked to a product
 
+
     public Long getId() {
         return id;
     }
@@ -54,6 +55,5 @@ public class ProductHistory {
     public void setTimestamp(LocalDateTime timestamp) {
         this.timestamp = timestamp;
     }
-
 }
 
