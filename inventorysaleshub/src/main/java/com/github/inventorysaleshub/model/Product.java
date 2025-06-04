@@ -64,6 +64,14 @@ public class Product {
         this.name = name;
     }
 
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
     public double getPrice() {
         return price;
     }
@@ -80,4 +88,24 @@ public class Product {
         this.stock = stock;
     }
 
+    public Category getCategory() {
+        return category;
+    }
+
+    public Supplier getSupplier() {
+        return supplier;
+    }
+
+    public Store getStore() {
+        return store;
+    }
+
+    public List<OrderDetails> getOrderDetails() {
+        return orderDetails;
+    }
+
+    public List<ProductHistory> getHistory() {
+        return history;
+    }
+    
 }
