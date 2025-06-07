@@ -23,6 +23,15 @@ public class Invoice {
     @JoinColumn(name = "order_id")
     private Order order;
 
+    public Invoice() {
+    }
+
+    public Invoice(LocalDate issueDate, Double totalAmount, Order order) {
+        this.issueDate = issueDate;
+        this.totalAmount = totalAmount;
+        this.order = order;
+    }
+
     public Long getId() {
         return id;
     }

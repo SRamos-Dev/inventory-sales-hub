@@ -27,6 +27,14 @@ public class User {
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     private List<Order> orders;
 
+    public User() {
+    }
+
+    public User(String name, String email) {
+        this.name = name;
+        this.email = email;
+    }
+
     public Long getId() {
         return id;
     }
@@ -57,6 +65,10 @@ public class User {
 
     public List<Order> getOrders() {
         return orders;
+    }
+
+    public void setRole(Role role) {
+        this.role = role;
     }
     
 }

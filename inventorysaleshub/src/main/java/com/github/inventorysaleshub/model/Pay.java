@@ -23,6 +23,15 @@ public class Pay {
     @NotNull(message = "Payment must be associated with an order")
     private Order order; // Ensures every payment is linked to an order
 
+    public Pay() {
+    }
+
+    public Pay(String method, String status, Order order) {
+        this.method = method;
+        this.status = status;
+        this.order = order;
+    }
+
     public Long getId() {
         return id;
     }

@@ -26,6 +26,16 @@ public class OrderDetails {
     @NotNull(message = "Product cannot be null")
     private Product product;  // Guarantees the existence of an associated product
 
+    public OrderDetails() {
+    }
+
+    public OrderDetails(int quantity, double price, Order order, Product product) {
+    this.quantity = quantity;
+    this.price = price;
+    this.order = order;
+    this.product = product;
+    }
+
     public Long getId() {
         return id;
     }

@@ -39,6 +39,16 @@ public class Order {
     @OneToOne(mappedBy = "order", cascade = CascadeType.ALL)
     private Pay pay;
 
+    public Order() {
+    }
+
+    public Order(LocalDateTime dateCreated, String status, Double total, User user) {
+        this.dateCreated = dateCreated;
+        this.status = status;
+        this.total = total;
+        this.user = user;
+    }
+
     public Long getId() {
         return id;
     }
