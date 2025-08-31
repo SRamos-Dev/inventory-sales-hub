@@ -1,7 +1,12 @@
 package com.github.inventorysaleshub.controller;
 
+import com.github.inventorysaleshub.dto.ProductDTO;
+import com.github.inventorysaleshub.dto.ProductRequestDTO;
+import com.github.inventorysaleshub.dto.ProductUpdateDTO;
+import com.github.inventorysaleshub.model.Category;
 import com.github.inventorysaleshub.model.Product;
 import com.github.inventorysaleshub.model.ProductHistory;
+import com.github.inventorysaleshub.repository.CategoryRepository;
 import com.github.inventorysaleshub.repository.ProductHistoryRepository;
 import com.github.inventorysaleshub.repository.ProductRepository;
 
@@ -18,6 +23,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/products")
@@ -28,47 +34,62 @@ public class ProductController {
     @Autowired
     private ProductHistoryRepository productHistoryRepository;
 
+    @Autowired
+    private CategoryRepository categoryRepository;
+
     @GetMapping
-    public List<Product> getProducts() {
-        return productRepository.findAll();
+    public ResponseEntity<List<ProductDTO>> getAllProducts() {
+        return ResponseEntity.ok(
+            productRepository.findAll().stream()
+                .map(ProductDTO::new)
+                .collect(Collectors.toList())
+        );
     }
     
     @GetMapping("/{id}")
-    public ResponseEntity<Product> getProductById(@PathVariable Long id) {
+    public ResponseEntity<ProductDTO> getProductById(@PathVariable Long id) {
         return productRepository.findById(id)
-                .map(product -> ResponseEntity.ok(product))
-                .orElse(ResponseEntity.notFound().build());  
+            .map(product -> ResponseEntity.ok(new ProductDTO(product)))
+            .orElse(ResponseEntity.notFound().build());
     }
+
     @PutMapping("/{id}")
-    public ResponseEntity<Product> updateProduct(@PathVariable Long id, @RequestBody Product updatedProduct) {
+    public ResponseEntity<ProductDTO> updateProduct( @PathVariable Long id, @Valid @RequestBody ProductUpdateDTO request) {
+
         return productRepository.findById(id).map(product -> {
 
-            // History saving before the update
+            // History saving before de update
             ProductHistory history = new ProductHistory();
             history.setProduct(product);
             history.setAction("UPDATED");
             history.setTimestamp(LocalDateTime.now());
             productHistoryRepository.save(history);
 
-            // Product update
-            product.setName(updatedProduct.getName());
-            product.setPrice(updatedProduct.getPrice());
-            product.setStock(updatedProduct.getStock());
-            return ResponseEntity.ok(productRepository.save(product));
+            // Product allows update
+            product.setName(request.getName());
+            product.setPrice(request.getPrice());
+            product.setStock(request.getStock());
+
+            Product updated = productRepository.save(product);
+            return ResponseEntity.ok(new ProductDTO(updated));
+
         }).orElse(ResponseEntity.notFound().build());
     }
+    
     @PostMapping
-    public ResponseEntity<Product> createProduct(@RequestBody @Valid Product newProduct) {
-        Product savedProduct = productRepository.save(newProduct);
+    public ResponseEntity<ProductDTO> createProduct(@Valid @RequestBody ProductRequestDTO request) {
+        Category category = categoryRepository.findById(request.getCategoryId()).orElseThrow(() -> new RuntimeException("Category not found with ID: " + request.getCategoryId()));
 
-        // Save creation history
-        ProductHistory history = new ProductHistory();
-        history.setProduct(savedProduct);
-        history.setAction("CREATED");
-        history.setTimestamp(LocalDateTime.now());
-        productHistoryRepository.save(history);
 
-        return ResponseEntity.status(HttpStatus.CREATED).body(savedProduct);
+        Product product = new Product();
+        product.setName(request.getName());
+        product.setDescription(request.getDescription());
+        product.setPrice(request.getPrice());
+        product.setStock(request.getStock());
+        product.setCategory(category);
+
+        Product saved = productRepository.save(product);
+        return ResponseEntity.status(HttpStatus.CREATED).body(new ProductDTO(saved));
     }
 
     @DeleteMapping("/{id}")
