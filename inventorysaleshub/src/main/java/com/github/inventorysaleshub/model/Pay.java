@@ -35,7 +35,6 @@ public class Pay {
     public Long getId() {
         return id;
     }
-
     public void setId(Long id) {
         this.id = id;
     }
@@ -43,7 +42,6 @@ public class Pay {
     public String getMethod() {
         return method;
     }
-
     public void setMethod(String method) {
         this.method = method;
     }
@@ -51,13 +49,15 @@ public class Pay {
     public String getStatus() {
         return status;
     }
-
     public void setStatus(String status) {
         this.status = status;
     }
 
     public Order getOrder() {
         return order;
+    }
+    public void setOrder(Order order) {
+        this.order = order;
     }
     
 }
