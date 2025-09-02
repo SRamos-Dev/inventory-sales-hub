@@ -31,7 +31,7 @@ public class Order {
     private User user;
 
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL)
-    private List<OrderDetails> details;
+    private List<OrderDetails> orderDetails;
 
     @OneToOne(mappedBy = "order", cascade = CascadeType.ALL)
     private Invoice invoice;
@@ -52,7 +52,6 @@ public class Order {
     public Long getId() {
         return id;
     }
-
     public void setId(Long id) {
         this.id = id;
     }
@@ -60,7 +59,6 @@ public class Order {
     public LocalDateTime getDateCreated() {
         return dateCreated;
     }
-
     public void setDateCreated(LocalDateTime dateCreated) {
         this.dateCreated = dateCreated;
     }
@@ -68,7 +66,6 @@ public class Order {
     public String getStatus() {
         return status;
     }
-
     public void setStatus(String status) {
         this.status = status;
     }
@@ -76,7 +73,6 @@ public class Order {
     public double getTotal() {
         return total;
     }
-
     public void setTotal(double total) {
         this.total = total;
     }
@@ -85,16 +81,17 @@ public class Order {
         return user;
     }
 
-    public List<OrderDetails> getDetails() {
-        return details;
+    public List<OrderDetails> getOrderDetails() {
+        return orderDetails;
+    }
+    public void setOrderDetails(List<OrderDetails> orderDetails) {
+    this.orderDetails = orderDetails;
     }
 
     public Invoice getInvoice() {
         return invoice;
     }
-
     public Pay getPay() {
         return pay;
     }
-    
 }

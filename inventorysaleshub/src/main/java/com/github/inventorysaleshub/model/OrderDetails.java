@@ -63,9 +63,14 @@ public class OrderDetails {
     public Order getOrder() {
         return order;
     }
+    public void setOrder(Order order) {   //Required for detail.setOrder(order)
+        this.order = order;
+    }
 
     public Product getProduct() {
         return product;
     }
-    
+    public void setProduct(Product product) {  //Required for detail.setProduct(product)
+        this.product = product;
+    }
 }

@@ -1,48 +1,39 @@
 package com.github.inventorysaleshub.dto;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
+
+import com.github.inventorysaleshub.model.Order;
 
 public class OrderResponseDTO {
     private Long id;
-    private LocalDate orderDate;
+    private LocalDateTime dateCreated;
     private String status;
 
-    private List<OrderItemDTO> items;   // Product list
-    private InvoiceDTO invoice;         // Associated invoice
-    private PayDTO payment;             // Associated payment
+    private List<OrderItemDTO> items;
+    private InvoiceDTO invoice;
+    private PayDTO payment;
 
-    // Getters y Setters
-    
-    public Long getId() {
-        return id;
-    }
-    public void setId(Long id) {
-        this.id = id;
-    }
+    public OrderResponseDTO(Order order) {
+        this.id = order.getId();
+        this.dateCreated = order.getDateCreated();
+        this.status = order.getStatus();
 
-    public String getStatus() {
-        return status;
-    }
-    public void setStatus(String status) {
-        this.status = status;
-    }
+        // Convert details to DTOs
+        this.items = order.getOrderDetails()
+                .stream()
+                .map(OrderItemDTO::new)
+                .toList();
 
-    public InvoiceDTO getInvoice() {
-        return invoice;
-    }
-    public void setInvoice(InvoiceDTO invoice) {
-        this.invoice = invoice;
-    }
+        // Invoice (if any)
+        if (order.getInvoice() != null) {
+            this.invoice = new InvoiceDTO(order.getInvoice());
+        }
 
-    public PayDTO getPayment() {
-        return payment;
+        // Pay (if any)
+        if (order.getPay() != null) {
+            this.payment = new PayDTO(order.getPay());
+        }
     }
-    public void setPayment(PayDTO payment) {
-        this.payment = payment;
-    }
-    public List<OrderItemDTO> getItems() {
-        return items;
-    }
-    
 }
+

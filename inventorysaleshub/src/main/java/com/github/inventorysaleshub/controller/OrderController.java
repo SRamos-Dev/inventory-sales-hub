@@ -1,55 +1,115 @@
 package com.github.inventorysaleshub.controller;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import com.github.inventorysaleshub.dto.ApiResponseDTO;
+import com.github.inventorysaleshub.dto.OrderRequestDTO;
+import com.github.inventorysaleshub.dto.OrderResponseDTO;
 import com.github.inventorysaleshub.model.Order;
+import com.github.inventorysaleshub.model.OrderDetails;
+import com.github.inventorysaleshub.model.Product;
 import com.github.inventorysaleshub.repository.OrderRepository;
-import com.github.inventorysaleshub.repository.UserRepository;
+import com.github.inventorysaleshub.repository.ProductRepository;
 
 import jakarta.validation.Valid;
 
 @RestController
-@RequestMapping("/orders")
+@RequestMapping("/api/orders")
 public class OrderController {
 
-    @Autowired
-    private OrderRepository orderRepository;
+    private final OrderRepository orderRepository;
+    private final ProductRepository productRepository;
 
-    @Autowired
-    private UserRepository userRepository;
+    public OrderController(OrderRepository orderRepository,
+                           ProductRepository productRepository) {
+        this.orderRepository = orderRepository;
+        this.productRepository = productRepository;
+    }
 
-    // Crear un pedido
+    // ------------------ CREATE ------------------
     @PostMapping
-    public ResponseEntity<Order> createOrder(@RequestBody @Valid Order order) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(orderRepository.save(order));
+    public ResponseEntity<ApiResponseDTO<OrderResponseDTO>> createOrder(@Valid @RequestBody OrderRequestDTO request) {
+        Order order = new Order();
+        order.setDateCreated(LocalDateTime.now());
+        order.setStatus("PENDING");
+
+        // Build order details from request items
+        List<OrderDetails> details = request.getItems().stream().map(item -> {
+            Product product = productRepository.findById(item.getProductId())
+                    .orElseThrow(() -> new IllegalArgumentException("Product with ID " + item.getProductId() + " not found"));
+
+            OrderDetails detail = new OrderDetails();
+            detail.setOrder(order); // Link back to order
+            detail.setProduct(product);
+            detail.setQuantity(item.getQuantity());
+            detail.setPrice(item.getPrice());
+            return detail;
+        }).toList();
+
+        // Link details to order
+        order.setOrderDetails(details);
+
+        // Calculate total
+        double total = details.stream().mapToDouble(d -> d.getPrice() * d.getQuantity()).sum();
+        order.setTotal(total);
+
+        Order savedOrder = orderRepository.save(order);
+
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(new ApiResponseDTO<>(true, "Order created successfully", new OrderResponseDTO(savedOrder)));
     }
 
-    // Obtener todos los pedidos
-    @GetMapping
-    public List<Order> orderList() {
-        return orderRepository.findAll();
-    }
 
-    // Obtener pedido por ID
+    // ------------------ READ (by ID) ------------------
     @GetMapping("/{id}")
-    public ResponseEntity<Order> getOrder(@PathVariable Long id) {
+    public ResponseEntity<ApiResponseDTO<OrderResponseDTO>> getOrderById(@PathVariable Long id) {
         return orderRepository.findById(id)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+                .map(order -> ResponseEntity.ok(
+                        new ApiResponseDTO<>(true, "Order found", new OrderResponseDTO(order))
+                ))
+                .orElse(ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body(new ApiResponseDTO<>(false, "Order not found", null)));
     }
 
-    // Eliminar un pedido
+    // ------------------ LIST ALL ------------------
+    @GetMapping
+    public ResponseEntity<ApiResponseDTO<List<OrderResponseDTO>>> getAllOrders() {
+        List<OrderResponseDTO> orders = orderRepository.findAll()
+                .stream()
+                .map(OrderResponseDTO::new)
+                .toList();
+
+        return ResponseEntity.ok(new ApiResponseDTO<>(true, "All orders retrieved", orders));
+    }
+
+    // ------------------ UPDATE STATUS ------------------
+    @PutMapping("/{id}/status")
+    public ResponseEntity<ApiResponseDTO<OrderResponseDTO>> updateOrderStatus(
+            @PathVariable Long id,
+            @RequestParam String status) {
+
+        return orderRepository.findById(id).map(order -> {
+            order.setStatus(status);
+            Order updated = orderRepository.save(order);
+            return ResponseEntity.ok(new ApiResponseDTO<>(true, "Order status updated", new OrderResponseDTO(updated)));
+        }).orElse(ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(new ApiResponseDTO<>(false, "Order not found", null)));
+    }
+
+    // ------------------ DELETE ------------------
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteOrder(@PathVariable Long id) {
-        return orderRepository.findById(id).map(p -> {
-            orderRepository.delete(p);
-            return ResponseEntity.noContent().<Void>build();
-        }).orElse(ResponseEntity.notFound().build());
+    public ResponseEntity<ApiResponseDTO<Object>> deleteOrder(@PathVariable Long id) {
+        return orderRepository.findById(id).map(order -> {
+            orderRepository.delete(order);
+            return ResponseEntity.ok(new ApiResponseDTO<>(true, "Order deleted successfully", null));
+        }).orElse(ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(new ApiResponseDTO<>(false, "Order not found", null)));
     }
 }
+
 
