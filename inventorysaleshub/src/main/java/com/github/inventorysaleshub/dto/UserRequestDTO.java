@@ -4,18 +4,18 @@ import jakarta.validation.constraints.*;
 
 public class UserRequestDTO {
 
-    @NotBlank(message = "Name cannot be empty")
-    @Size(min = 3, max = 100)
+    @NotBlank(message = "User name cannot be empty")
+    @Size(min = 3, max = 100, message = "Name must be between 3 and 100 characters")
     private String name;
 
-    @NotBlank(message = "Email is required")
-    @Email(message = "Invalid email format")
+    @NotBlank(message = "Email cannot be empty")
+    @Email(message = "Must be a valid email address")
     private String email;
 
-    @NotNull(message = "Role ID is required")
-    private Long roleId;
+    @NotNull(message = "Role ID cannot be null")
+    private Long roleId; // The ID of the role to assign to the user
 
-    // Getters y Setters
+    // Getters and Setters
     public String getName() { 
         return name; 
     }
