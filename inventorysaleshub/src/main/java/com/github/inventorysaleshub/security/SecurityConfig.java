@@ -35,18 +35,20 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-            .csrf(csrf -> csrf.disable()) // Disable CSRF for APIs
+            .csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/auth/**").permitAll() // Allow register/login
-                .requestMatchers("/products/**").hasAuthority("ADMIN") // Example: only ADMIN can manage products
-                .requestMatchers("/orders/**").hasAnyAuthority("USER", "ADMIN") // USER or ADMIN can see orders
-                .anyRequest().authenticated() // Everything else requires token
+                .requestMatchers("/auth/**").permitAll() // Auth endpoints free
+                .requestMatchers("/products/**").hasAuthority("ADMIN") // Only ADMIN can manage products
+                .requestMatchers("/orders/**").hasAnyAuthority("ADMIN", "USER") // Users and Admins can see orders
+                .requestMatchers("/invoices/**").hasAuthority("ADMIN") // Example: invoices only for admins
+                .requestMatchers("/payments/**").hasAnyAuthority("ADMIN", "USER") // Payments accessible to both
+                .anyRequest().authenticated() // Everything else requires authentication
             )
-            // NEW: Register JWT filter before default username/password filter
             .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
+
 }
 
 
