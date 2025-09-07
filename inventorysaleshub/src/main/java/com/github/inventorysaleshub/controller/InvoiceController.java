@@ -6,6 +6,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+
 import com.github.inventorysaleshub.dto.ApiResponseDTO;
 import com.github.inventorysaleshub.dto.InvoiceDTO;
 import com.github.inventorysaleshub.dto.InvoiceRequestDTO;
@@ -30,6 +34,11 @@ public class InvoiceController {
     }
 
     // ------------------ CREATE ------------------
+    @Operation(summary = "Create a new invoice", description = "Register a new invoice linked to an order")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "201", description = "Invoice created successfully"),
+        @ApiResponse(responseCode = "400", description = "Bad request")
+    })
     @PostMapping
     public ResponseEntity<ApiResponseDTO<InvoiceDTO>> createInvoice(@Valid @RequestBody InvoiceRequestDTO request) {
         Order order = orderRepository.findById(request.getOrderId())
@@ -58,6 +67,8 @@ public class InvoiceController {
     }
 
     // ------------------ LIST ALL ------------------
+    @Operation(summary = "Get all invoices", description = "Retrieve all invoices")
+    @ApiResponse(responseCode = "200", description = "Invoices retrieved successfully")
     @GetMapping
     public ResponseEntity<ApiResponseDTO<List<InvoiceDTO>>> getAllInvoices() {
         List<InvoiceDTO> invoices = invoiceRepository.findAll()

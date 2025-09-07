@@ -7,6 +7,12 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+
 import com.github.inventorysaleshub.dto.ApiResponseDTO;
 import com.github.inventorysaleshub.dto.OrderRequestDTO;
 import com.github.inventorysaleshub.dto.OrderResponseDTO;
@@ -32,6 +38,13 @@ public class OrderController {
     }
 
     // ------------------ CREATE ------------------
+    @Operation(summary = "Create a new order", description = "Register a new order with products")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "201", description = "Order created successfully",
+                content = @Content(mediaType = "application/json",
+                        schema = @Schema(implementation = OrderResponseDTO.class))),
+        @ApiResponse(responseCode = "400", description = "Bad request", content = @Content)
+    })
     @PostMapping
     public ResponseEntity<ApiResponseDTO<OrderResponseDTO>> createOrder(@Valid @RequestBody OrderRequestDTO request) {
         Order order = new Order();
@@ -77,6 +90,10 @@ public class OrderController {
     }
 
     // ------------------ LIST ALL ------------------
+    @Operation(summary = "Get all orders", description = "Retrieve all orders with details, invoice and payment")
+    @ApiResponse(responseCode = "200", description = "Orders retrieved successfully",
+            content = @Content(mediaType = "application/json",
+                    schema = @Schema(implementation = OrderResponseDTO.class)))
     @GetMapping
     public ResponseEntity<ApiResponseDTO<List<OrderResponseDTO>>> getAllOrders() {
         List<OrderResponseDTO> orders = orderRepository.findAll()

@@ -8,6 +8,12 @@ import com.github.inventorysaleshub.model.User;
 import com.github.inventorysaleshub.repository.RoleRepository;
 import com.github.inventorysaleshub.repository.UserRepository;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+
 import jakarta.validation.Valid;
 
 import java.util.List;
@@ -30,6 +36,11 @@ public class UserController {
     }
 
     // ------------------ CREATE ------------------
+    @Operation(summary = "Create a new user", description = "Register a new user with role")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "201", description = "User created successfully"),
+        @ApiResponse(responseCode = "400", description = "Bad request")
+    })
     @PostMapping
     public ResponseEntity<ApiResponseDTO<UserDTO>> createUser(@Valid @RequestBody UserRequestDTO request) {
         Role role = roleRepository.findById(request.getRoleId())
@@ -58,6 +69,10 @@ public class UserController {
     }
 
     // ------------------ LIST ALL ------------------
+    @Operation(summary = "Get all users", description = "Retrieve all registered users")
+    @ApiResponse(responseCode = "200", description = "Users retrieved successfully",
+            content = @Content(mediaType = "application/json",
+                    schema = @Schema(implementation = UserDTO.class)))
     @GetMapping
     public ResponseEntity<ApiResponseDTO<List<UserDTO>>> getAllUsers() {
         List<UserDTO> users = userRepository.findAll()
@@ -69,6 +84,11 @@ public class UserController {
     }
 
     // ------------------ UPDATE ------------------
+    @Operation(summary = "Update a user", description = "Update user details by ID")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "User updated successfully"),
+        @ApiResponse(responseCode = "404", description = "User not found")
+    })
     @PutMapping("/{id}")
     public ResponseEntity<ApiResponseDTO<UserDTO>> updateUser(
             @PathVariable Long id,
