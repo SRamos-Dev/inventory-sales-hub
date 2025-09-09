@@ -30,7 +30,7 @@ public class AuthService {
     // --- Register new user ---
     public UserDTO register(RegisterDTO request) {
         Role role = roleRepository.findById(request.getRoleId())
-                .orElseThrow(() -> new IllegalArgumentException("Role not found with ID: " + request.getRoleId()));
+                .orElseThrow(() -> new RuntimeException("Role not found with ID: " + request.getRoleId()));
 
         User user = new User();
         user.setName(request.getName());
@@ -56,7 +56,15 @@ public class AuthService {
         // Generate token
         String token = jwtProvider.generateToken(user.getEmail(), user.getRole().getName());
 
-        return new LoginResponseDTO(token, user.getEmail(), user.getRole().getName());
+        // Build response DTO
+        LoginResponseDTO response = new LoginResponseDTO();
+        response.setToken(token);
+        response.setUserId(user.getId());
+        response.setUserName(user.getName());
+        response.setUserEmail(user.getEmail());
+        response.setRoleName(user.getRole().getName());
+
+        return response;
     }
 }
 

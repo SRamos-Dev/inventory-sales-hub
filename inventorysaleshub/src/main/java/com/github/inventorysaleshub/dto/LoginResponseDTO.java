@@ -2,27 +2,56 @@ package com.github.inventorysaleshub.dto;
 
 public class LoginResponseDTO {
 
-    private String token;   // JWT token
-    private String email;   // User email
-    private String role;    // User role
+    private String token;
+    private String tokenType = "Bearer";
+    private Long userId;
+    private String userName;
+    private String userEmail;
+    private String roleName;
 
-    public LoginResponseDTO(String token, String email, String role) {
-        this.token = token;
-        this.email = email;
-        this.role = role;
+
+    // --- Getters and Setters ---
+    public String getToken() { 
+        return token; 
+    }
+    public void setToken(String token) { 
+        this.token = token; 
     }
 
-    // --- Getters ---
-    public String getToken() {
-        return token;
+    public String getTokenType() { 
+        return tokenType; 
+    }
+    public void setTokenType(String tokenType) { 
+        this.tokenType = tokenType; 
     }
 
-    public String getEmail() {
-        return email;
+    public Long getUserId() { 
+        return userId; 
+    }
+    public void setUserId(Long userId) { 
+        this.userId = userId; 
     }
 
-    public String getRole() {
-        return role;
+    public String getUserName() { 
+        return userName; 
+    }
+    public void setUserName(String userName) { 
+        this.userName = userName; 
+    }
+
+    public String getUserEmail() { 
+        return userEmail; 
+    }
+    public void setUserEmail(String userEmail) { 
+        this.userEmail = userEmail; 
+    }
+
+    public String getRoleName() { 
+        return roleName; 
+    }
+    public void setRoleName(String roleName) { 
+        this.roleName = roleName; 
     }
 }
+
 

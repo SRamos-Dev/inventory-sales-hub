@@ -6,6 +6,9 @@ import com.github.inventorysaleshub.repository.OrderRepository;
 import com.github.inventorysaleshub.repository.ProductRepository;
 import com.github.inventorysaleshub.repository.UserRepository;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -13,7 +16,7 @@ import java.math.BigDecimal;
 import java.util.List;
 
 @RestController
-@RequestMapping("/dashboard")
+@RequestMapping("/api/dashboard")
 public class DashboardController {
 
     private final OrderRepository orderRepository;
@@ -32,13 +35,15 @@ public class DashboardController {
     }
 
     // --- Sales summary (real data) ---
+    @Operation(summary = "Get sales summary", description = "Retrieve total orders, revenue and average order value")
+    @ApiResponse(responseCode = "200", description = "Sales summary retrieved successfully")
     @GetMapping("/sales-summary")
     public ResponseEntity<ApiResponseDTO<SalesSummaryDTO>> getSalesSummary() {
         long totalOrders = orderRepository.countTotalOrders();
         BigDecimal totalRevenue = orderRepository.calculateTotalRevenue();
         BigDecimal averageOrder = orderRepository.calculateAverageOrderValue();
 
-        // Handle possible nulls if no orders exist yet
+        // Prevent null values if no data exists
         if (totalRevenue == null) totalRevenue = BigDecimal.ZERO;
         if (averageOrder == null) averageOrder = BigDecimal.ZERO;
 
@@ -47,6 +52,8 @@ public class DashboardController {
     }
 
     // --- Top products (real data) ---
+    @Operation(summary = "Get top products", description = "Retrieve best-selling products")
+    @ApiResponse(responseCode = "200", description = "Top products retrieved successfully")
     @GetMapping("/top-products")
     public ResponseEntity<ApiResponseDTO<List<TopProductDTO>>> getTopProducts() {
         List<TopProductDTO> products = orderDetailsRepository.findTopProducts();
@@ -54,6 +61,8 @@ public class DashboardController {
     }
 
     // --- Top customers (real data) ---
+    @Operation(summary = "Get top customers", description = "Retrieve customers with the highest purchases")
+    @ApiResponse(responseCode = "200", description = "Top customers retrieved successfully")
     @GetMapping("/top-customers")
     public ResponseEntity<ApiResponseDTO<List<TopCustomerDTO>>> getTopCustomers() {
         List<TopCustomerDTO> customers = orderRepository.findTopCustomers();
@@ -61,6 +70,8 @@ public class DashboardController {
     }
 
     // --- Low stock products (real data) ---
+    @Operation(summary = "Get low stock products", description = "Retrieve products with low inventory")
+    @ApiResponse(responseCode = "200", description = "Low stock products retrieved successfully")
     @GetMapping("/low-stock")
     public ResponseEntity<ApiResponseDTO<List<LowStockProductDTO>>> getLowStockProducts() {
         List<LowStockProductDTO> lowStock = productRepository.findLowStockProducts();
@@ -68,6 +79,8 @@ public class DashboardController {
     }
 
     // --- Monthly sales (real data) ---
+    @Operation(summary = "Get monthly sales", description = "Retrieve sales grouped by month")
+    @ApiResponse(responseCode = "200", description = "Monthly sales retrieved successfully")
     @GetMapping("/monthly-sales")
     public ResponseEntity<ApiResponseDTO<List<MonthlySalesDTO>>> getMonthlySales() {
         List<MonthlySalesDTO> sales = orderRepository.getMonthlySales();
@@ -75,6 +88,8 @@ public class DashboardController {
     }
 
     // --- Most profitable products (real data) ---
+    @Operation(summary = "Get most profitable products", description = "Retrieve products with highest profit margin")
+    @ApiResponse(responseCode = "200", description = "Most profitable products retrieved successfully")
     @GetMapping("/most-profitable-products")
     public ResponseEntity<ApiResponseDTO<List<MostProfitableProductDTO>>> getMostProfitableProducts() {
         List<MostProfitableProductDTO> products = orderDetailsRepository.findMostProfitableProducts();
@@ -82,10 +97,11 @@ public class DashboardController {
     }
 
     // --- New customers per month (real data) ---
+    @Operation(summary = "Get new customers per month", description = "Retrieve how many new customers registered per month")
+    @ApiResponse(responseCode = "200", description = "New customers retrieved successfully")
     @GetMapping("/new-customers")
     public ResponseEntity<ApiResponseDTO<List<NewCustomersDTO>>> getNewCustomers() {
         List<NewCustomersDTO> customers = userRepository.getNewCustomersPerMonth();
         return ResponseEntity.ok(new ApiResponseDTO<>(true, "New customers per month retrieved successfully", customers));
     }
-
 }

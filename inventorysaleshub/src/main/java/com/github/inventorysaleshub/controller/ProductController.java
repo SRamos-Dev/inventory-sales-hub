@@ -11,7 +11,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.validation.Valid;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.*;
-import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -119,25 +118,23 @@ public class ProductController {
     // --- Delete a product ---
     @Operation(summary = "Delete a product", description = "Remove a product by ID")
     @ApiResponses(value = {
-        @ApiResponse(responseCode = "204", description = "Product deleted successfully"),
+        @ApiResponse(responseCode = "200", description = "Product deleted successfully"),
         @ApiResponse(responseCode = "404", description = "Product not found")
     })
     @DeleteMapping("/{id}")
-    public ResponseEntity<Object> deleteProduct(@PathVariable Long id) {
+    public ResponseEntity<ApiResponseDTO<Void>> deleteProduct(@PathVariable Long id) {
         return productRepository.findById(id)
                 .map(product -> {
-                    ProductHistory history = new ProductHistory();
-                    history.setProduct(product);
-                    history.setAction("DELETED");
-                    history.setTimestamp(LocalDateTime.now());
-                    productHistoryRepository.save(history);
-
                     productRepository.delete(product);
-                    return ResponseEntity.noContent().build();
+                    ApiResponseDTO<Void> response = new ApiResponseDTO<>(true, "Product deleted successfully", null);
+                    return ResponseEntity.ok(response);
                 })
-                .orElse(ResponseEntity.status(HttpStatus.NOT_FOUND)
-                        .body(new ApiResponseDTO<>(false, "Product not found", null)));
+                .orElseGet(() -> {
+                    ApiResponseDTO<Void> response = new ApiResponseDTO<>(false, "Product not found", null);
+                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+                });
     }
+
 
     // --- Get products by category ---
     @Operation(summary = "Get products by category", description = "Retrieve products that belong to a specific category")
@@ -221,7 +218,3 @@ public class ProductController {
         return ResponseEntity.ok(new ApiResponseDTO<>(true, "Products retrieved successfully", products));
     }
 }
-
-
-
-

@@ -1,26 +1,21 @@
 package com.github.inventorysaleshub.controller;
 
-import com.github.inventorysaleshub.dto.ApiResponseDTO;
-import com.github.inventorysaleshub.dto.UserDTO;
-import com.github.inventorysaleshub.dto.UserRequestDTO;
+import com.github.inventorysaleshub.dto.*;
 import com.github.inventorysaleshub.model.Role;
 import com.github.inventorysaleshub.model.User;
 import com.github.inventorysaleshub.repository.RoleRepository;
 import com.github.inventorysaleshub.repository.UserRepository;
-
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
-import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.Schema;
-
 import jakarta.validation.Valid;
-
-import java.util.List;
-
+import org.modelmapper.ModelMapper;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/users")
@@ -28,63 +23,68 @@ public class UserController {
 
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
+    private final ModelMapper modelMapper;
 
     public UserController(UserRepository userRepository,
-                          RoleRepository roleRepository) {
+                          RoleRepository roleRepository,
+                          ModelMapper modelMapper) {
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;
+        this.modelMapper = modelMapper;
     }
 
-    // ------------------ CREATE ------------------
-    @Operation(summary = "Create a new user", description = "Register a new user with role")
-    @ApiResponses(value = {
-        @ApiResponse(responseCode = "201", description = "User created successfully"),
-        @ApiResponse(responseCode = "400", description = "Bad request")
-    })
-    @PostMapping
-    public ResponseEntity<ApiResponseDTO<UserDTO>> createUser(@Valid @RequestBody UserRequestDTO request) {
-        Role role = roleRepository.findById(request.getRoleId())
-                .orElseThrow(() -> new RuntimeException("Role not found with ID: " + request.getRoleId()));
-
-        User user = new User();
-        user.setName(request.getName());
-        user.setEmail(request.getEmail());
-        user.setRole(role);
-
-        User saved = userRepository.save(user);
-
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .body(new ApiResponseDTO<>(true, "User created successfully", new UserDTO(saved)));
-    }
-
-    // ------------------ READ (by ID) ------------------
-    @GetMapping("/{id}")
-    public ResponseEntity<ApiResponseDTO<UserDTO>> getUserById(@PathVariable Long id) {
-        return userRepository.findById(id)
-                .map(user -> ResponseEntity.ok(
-                        new ApiResponseDTO<>(true, "User found", new UserDTO(user))
-                ))
-                .orElse(ResponseEntity.status(HttpStatus.NOT_FOUND)
-                        .body(new ApiResponseDTO<>(false, "User not found", null)));
-    }
-
-    // ------------------ LIST ALL ------------------
+    // --- Get all users ---
     @Operation(summary = "Get all users", description = "Retrieve all registered users")
-    @ApiResponse(responseCode = "200", description = "Users retrieved successfully",
-            content = @Content(mediaType = "application/json",
-                    schema = @Schema(implementation = UserDTO.class)))
+    @ApiResponse(responseCode = "200", description = "Users retrieved successfully")
     @GetMapping
     public ResponseEntity<ApiResponseDTO<List<UserDTO>>> getAllUsers() {
         List<UserDTO> users = userRepository.findAll()
                 .stream()
-                .map(UserDTO::new)
-                .toList();
-
-        return ResponseEntity.ok(new ApiResponseDTO<>(true, "All users retrieved", users));
+                .map(u -> modelMapper.map(u, UserDTO.class))
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(new ApiResponseDTO<>(true, "Users retrieved successfully", users));
     }
 
-    // ------------------ UPDATE ------------------
-    @Operation(summary = "Update a user", description = "Update user details by ID")
+    // --- Get user by ID ---
+    @Operation(summary = "Get a user by ID", description = "Retrieve a single user by its ID")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "User retrieved successfully"),
+        @ApiResponse(responseCode = "404", description = "User not found")
+    })
+    @GetMapping("/{id}")
+    public ResponseEntity<ApiResponseDTO<UserDTO>> getUserById(@PathVariable Long id) {
+        return userRepository.findById(id)
+                .map(user -> ResponseEntity.ok(new ApiResponseDTO<>(true, "User retrieved successfully",
+                        modelMapper.map(user, UserDTO.class))))
+                .orElse(ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body(new ApiResponseDTO<>(false, "User not found", null)));
+    }
+
+    // --- Create a new user ---
+    @Operation(summary = "Create a new user", description = "Register a new user with role")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "201", description = "User created successfully"),
+        @ApiResponse(responseCode = "400", description = "Invalid request")
+    })
+    @PostMapping
+    public ResponseEntity<ApiResponseDTO<UserDTO>> createUser(
+            @Valid @RequestBody UserRequestDTO request) {
+
+        User user = modelMapper.map(request, User.class);
+
+        Role role = roleRepository.findById(request.getRoleId())
+                .orElseThrow(() -> new RuntimeException("Role not found with ID: " + request.getRoleId()));
+
+        user.setRole(role);
+        User saved = userRepository.save(user);
+
+        UserDTO response = modelMapper.map(saved, UserDTO.class);
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(new ApiResponseDTO<>(true, "User created successfully", response));
+    }
+
+    // --- Update a user ---
+    @Operation(summary = "Update a user", description = "Update an existing user by ID")
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = "User updated successfully"),
         @ApiResponse(responseCode = "404", description = "User not found")
@@ -94,30 +94,39 @@ public class UserController {
             @PathVariable Long id,
             @Valid @RequestBody UserRequestDTO request) {
 
-        return userRepository.findById(id).map(user -> {
-            Role role = roleRepository.findById(request.getRoleId())
-                    .orElseThrow(() -> new RuntimeException("Role not found with ID: " + request.getRoleId()));
+        return userRepository.findById(id)
+                .map(user -> {
+                    modelMapper.map(request, user);
 
-            user.setName(request.getName());
-            user.setEmail(request.getEmail());
-            user.setRole(role);
+                    Role role = roleRepository.findById(request.getRoleId())
+                            .orElseThrow(() -> new RuntimeException("Role not found with ID: " + request.getRoleId()));
+                    user.setRole(role);
 
-            User updated = userRepository.save(user);
-
-            return ResponseEntity.ok(new ApiResponseDTO<>(true, "User updated successfully", new UserDTO(updated)));
-        }).orElse(ResponseEntity.status(HttpStatus.NOT_FOUND)
-                .body(new ApiResponseDTO<>(false, "User not found", null)));
+                    User updated = userRepository.save(user);
+                    return ResponseEntity.ok(new ApiResponseDTO<>(true, "User updated successfully",
+                            modelMapper.map(updated, UserDTO.class)));
+                })
+                .orElse(ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body(new ApiResponseDTO<>(false, "User not found", null)));
     }
 
-    // ------------------ DELETE ------------------
+    // --- Delete a user ---
+    @Operation(summary = "Delete a user", description = "Remove a user by ID")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "204", description = "User deleted successfully"),
+        @ApiResponse(responseCode = "404", description = "User not found")
+    })
     @DeleteMapping("/{id}")
-    public ResponseEntity<ApiResponseDTO<Object>> deleteUser(@PathVariable Long id) {
-        return userRepository.findById(id).map(user -> {
-            userRepository.delete(user);
-            return ResponseEntity.ok(new ApiResponseDTO<>(true, "User deleted successfully", null));
-        }).orElse(ResponseEntity.status(HttpStatus.NOT_FOUND)
-                .body(new ApiResponseDTO<>(false, "User not found", null)));
+    public ResponseEntity<ApiResponseDTO<Void>> deleteUser(@PathVariable Long id) {
+        return userRepository.findById(id)
+                .map(user -> {
+                    userRepository.delete(user);
+                    ApiResponseDTO<Void> response = new ApiResponseDTO<>(true, "User deleted successfully", null);
+                    return ResponseEntity.ok(response);
+                })
+                .orElseGet(() -> {
+                    ApiResponseDTO<Void> response = new ApiResponseDTO<>(false, "User not found", null);
+                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+                });
     }
 }
-
-
