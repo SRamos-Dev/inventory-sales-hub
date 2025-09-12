@@ -12,6 +12,7 @@ import jakarta.validation.Valid;
 import org.modelmapper.ModelMapper;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -32,6 +33,7 @@ public class SupplierController {
     @Operation(summary = "Get all suppliers", description = "Retrieve all suppliers")
     @ApiResponse(responseCode = "200", description = "Suppliers retrieved successfully")
     @GetMapping
+    @PreAuthorize("hasAnyRole('ADMIN','USER')")
     public ResponseEntity<ApiResponseDTO<List<SupplierDTO>>> getAllSuppliers() {
         List<SupplierDTO> suppliers = supplierRepository.findAll()
                 .stream()
@@ -48,6 +50,7 @@ public class SupplierController {
             @ApiResponse(responseCode = "404", description = "Supplier not found")
     })
     @GetMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN','USER')")
     public ResponseEntity<ApiResponseDTO<SupplierDTO>> getSupplierById(@PathVariable Long id) {
         return supplierRepository.findById(id)
                 .map(supplier -> ResponseEntity.ok(new ApiResponseDTO<>(true, "Supplier retrieved successfully",
@@ -63,6 +66,7 @@ public class SupplierController {
             @ApiResponse(responseCode = "400", description = "Invalid request")
     })
     @PostMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponseDTO<SupplierDTO>> createSupplier(@Valid @RequestBody SupplierRequestDTO request) {
         Supplier supplier = modelMapper.map(request, Supplier.class);
         Supplier saved = supplierRepository.save(supplier);
@@ -79,6 +83,7 @@ public class SupplierController {
             @ApiResponse(responseCode = "404", description = "Supplier not found")
     })
     @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponseDTO<SupplierDTO>> updateSupplier(
             @PathVariable Long id,
             @Valid @RequestBody SupplierRequestDTO request) {
@@ -102,6 +107,7 @@ public class SupplierController {
             @ApiResponse(responseCode = "404", description = "Supplier not found")
     })
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponseDTO<Void>> deleteSupplier(@PathVariable Long id) {
         return supplierRepository.findById(id)
                 .map(supplier -> {
@@ -115,3 +121,4 @@ public class SupplierController {
                 });
     }
 }
+

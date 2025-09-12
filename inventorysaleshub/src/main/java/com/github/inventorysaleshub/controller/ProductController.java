@@ -13,6 +13,7 @@ import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
@@ -38,6 +39,7 @@ public class ProductController {
     // --- Get all products ---
     @Operation(summary = "Get all products", description = "Retrieve all products from inventory")
     @ApiResponse(responseCode = "200", description = "Products retrieved successfully")
+    @PreAuthorize("hasAnyRole('ADMIN','USER')")
     @GetMapping
     public ResponseEntity<ApiResponseDTO<List<ProductDTO>>> getAllProducts() {
         List<ProductDTO> products = productRepository.findAll()
@@ -53,6 +55,7 @@ public class ProductController {
         @ApiResponse(responseCode = "200", description = "Product retrieved successfully"),
         @ApiResponse(responseCode = "404", description = "Product not found")
     })
+    @PreAuthorize("hasAnyRole('ADMIN','USER')")
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponseDTO<ProductDTO>> getProductById(@PathVariable Long id) {
         return productRepository.findById(id)
@@ -68,6 +71,7 @@ public class ProductController {
         @ApiResponse(responseCode = "201", description = "Product created successfully"),
         @ApiResponse(responseCode = "400", description = "Invalid request")
     })
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping
     public ResponseEntity<ApiResponseDTO<ProductDTO>> createProduct(
             @Valid @RequestBody ProductRequestDTO request) {
@@ -92,6 +96,7 @@ public class ProductController {
         @ApiResponse(responseCode = "200", description = "Product updated successfully"),
         @ApiResponse(responseCode = "404", description = "Product not found")
     })
+    @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/{id}")
     public ResponseEntity<ApiResponseDTO<ProductDTO>> updateProduct(
             @PathVariable Long id,
@@ -121,6 +126,7 @@ public class ProductController {
         @ApiResponse(responseCode = "200", description = "Product deleted successfully"),
         @ApiResponse(responseCode = "404", description = "Product not found")
     })
+    @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{id}")
     public ResponseEntity<ApiResponseDTO<Void>> deleteProduct(@PathVariable Long id) {
         return productRepository.findById(id)
@@ -135,10 +141,10 @@ public class ProductController {
                 });
     }
 
-
     // --- Get products by category ---
     @Operation(summary = "Get products by category", description = "Retrieve products that belong to a specific category")
     @ApiResponse(responseCode = "200", description = "Products retrieved successfully")
+    @PreAuthorize("hasAnyRole('ADMIN','USER')")
     @GetMapping("/category/{id}")
     public ResponseEntity<ApiResponseDTO<List<ProductDTO>>> getProductsByCategory(@PathVariable Long id) {
         List<ProductDTO> products = productRepository.findByCategoryId(id)
@@ -151,6 +157,7 @@ public class ProductController {
     // --- Search products by name ---
     @Operation(summary = "Search products", description = "Find products by name (case insensitive)")
     @ApiResponse(responseCode = "200", description = "Products retrieved successfully")
+    @PreAuthorize("hasAnyRole('ADMIN','USER')")
     @GetMapping("/search")
     public ResponseEntity<ApiResponseDTO<List<ProductDTO>>> searchProductsByName(@RequestParam String name) {
         List<ProductDTO> results = productRepository.findByNameContainingIgnoreCase(name)
@@ -166,6 +173,7 @@ public class ProductController {
         @ApiResponse(responseCode = "200", description = "Product history retrieved successfully"),
         @ApiResponse(responseCode = "404", description = "Product not found")
     })
+    @PreAuthorize("hasAnyRole('ADMIN','USER')")
     @GetMapping("/{id}/history")
     public ResponseEntity<ApiResponseDTO<List<ProductHistory>>> getProductHistory(@PathVariable Long id) {
         return productRepository.findById(id)
@@ -180,6 +188,7 @@ public class ProductController {
     // --- Get products with low stock ---
     @Operation(summary = "Get products with low stock", description = "Retrieve products with stock lower than 5")
     @ApiResponse(responseCode = "200", description = "Low stock products retrieved successfully")
+    @PreAuthorize("hasAnyRole('ADMIN','USER')")
     @GetMapping("/stock/low")
     public ResponseEntity<ApiResponseDTO<List<ProductDTO>>> getProductsWithLowStock() {
         List<ProductDTO> lowStockProducts = productRepository.findByStockLessThan(5)
@@ -192,6 +201,7 @@ public class ProductController {
     // --- Get products with pagination ---
     @Operation(summary = "Get products with pagination", description = "Retrieve products with page and size parameters")
     @ApiResponse(responseCode = "200", description = "Products retrieved successfully")
+    @PreAuthorize("hasAnyRole('ADMIN','USER')")
     @GetMapping("/page")
     public ResponseEntity<ApiResponseDTO<Page<ProductDTO>>> getProductsPaginated(
             @RequestParam(defaultValue = "0") int page,
@@ -205,6 +215,7 @@ public class ProductController {
     // --- Get products sorted ---
     @Operation(summary = "Get products sorted", description = "Retrieve products sorted by a field and order")
     @ApiResponse(responseCode = "200", description = "Products retrieved successfully")
+    @PreAuthorize("hasAnyRole('ADMIN','USER')")
     @GetMapping("/sort")
     public ResponseEntity<ApiResponseDTO<List<ProductDTO>>> getProductsSorted(
             @RequestParam String by,
@@ -218,3 +229,4 @@ public class ProductController {
         return ResponseEntity.ok(new ApiResponseDTO<>(true, "Products retrieved successfully", products));
     }
 }
+

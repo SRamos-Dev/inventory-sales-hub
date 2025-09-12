@@ -12,6 +12,7 @@ import jakarta.validation.Valid;
 import org.modelmapper.ModelMapper;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -32,6 +33,7 @@ public class StoreController {
     @Operation(summary = "Get all stores", description = "Retrieve all stores")
     @ApiResponse(responseCode = "200", description = "Stores retrieved successfully")
     @GetMapping
+    @PreAuthorize("hasAnyRole('ADMIN','USER')")
     public ResponseEntity<ApiResponseDTO<List<StoreDTO>>> getAllStores() {
         List<StoreDTO> stores = storeRepository.findAll()
                 .stream()
@@ -48,6 +50,7 @@ public class StoreController {
             @ApiResponse(responseCode = "404", description = "Store not found")
     })
     @GetMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN','USER')")
     public ResponseEntity<ApiResponseDTO<StoreDTO>> getStoreById(@PathVariable Long id) {
         return storeRepository.findById(id)
                 .map(store -> ResponseEntity.ok(new ApiResponseDTO<>(true, "Store retrieved successfully",
@@ -63,14 +66,10 @@ public class StoreController {
             @ApiResponse(responseCode = "400", description = "Invalid request")
     })
     @PostMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponseDTO<StoreDTO>> createStore(@Valid @RequestBody StoreRequestDTO request) {
-        // Map request to entity
         Store store = modelMapper.map(request, Store.class);
-
-        // Persist entity
         Store saved = storeRepository.save(store);
-
-        // Map to response DTO
         StoreDTO dto = modelMapper.map(saved, StoreDTO.class);
 
         return ResponseEntity.status(HttpStatus.CREATED)
@@ -84,18 +83,16 @@ public class StoreController {
             @ApiResponse(responseCode = "404", description = "Store not found")
     })
     @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponseDTO<StoreDTO>> updateStore(
             @PathVariable Long id,
             @Valid @RequestBody StoreRequestDTO request) {
 
         return storeRepository.findById(id)
                 .map(store -> {
-                    // Map incoming fields onto the existing entity
                     modelMapper.map(request, store);
-
                     Store updated = storeRepository.save(store);
                     StoreDTO dto = modelMapper.map(updated, StoreDTO.class);
-
                     return ResponseEntity.ok(new ApiResponseDTO<>(true, "Store updated successfully", dto));
                 })
                 .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND)
@@ -109,6 +106,7 @@ public class StoreController {
             @ApiResponse(responseCode = "404", description = "Store not found")
     })
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponseDTO<Void>> deleteStore(@PathVariable Long id) {
         return storeRepository.findById(id)
                 .map(store -> {
@@ -122,5 +120,3 @@ public class StoreController {
                 });
     }
 }
-
-

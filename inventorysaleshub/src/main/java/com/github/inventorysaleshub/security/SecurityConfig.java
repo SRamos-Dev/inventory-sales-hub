@@ -8,7 +8,6 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
 public class SecurityConfig {
@@ -33,22 +32,26 @@ public class SecurityConfig {
 
     // --- Security filter chain ---
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
             .csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/auth/**").permitAll() // Auth endpoints free
-                .requestMatchers("/products/**").hasAuthority("ADMIN") // Only ADMIN can manage products
-                .requestMatchers("/orders/**").hasAnyAuthority("ADMIN", "USER") // Users and Admins can see orders
-                .requestMatchers("/invoices/**").hasAuthority("ADMIN") // Example: invoices only for admins
-                .requestMatchers("/payments/**").hasAnyAuthority("ADMIN", "USER") // Payments accessible to both
-                .anyRequest().authenticated() // Everything else requires authentication
-            )
-            .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
+                // Public endpoints
+                .requestMatchers("/api/auth/**").permitAll()
+
+                // Admin-only sections
+                .requestMatchers("/api/dashboard/**").hasRole("ADMIN")
+                .requestMatchers("/api/products/**").hasRole("ADMIN")
+                .requestMatchers("/api/invoices/**", "/api/pay/**").hasRole("ADMIN")
+
+                // Mixed access (USER and ADMIN)
+                .requestMatchers("/api/orders/**").hasAnyRole("USER", "ADMIN")
+
+                // Everything else requires authentication
+                .anyRequest().authenticated()
+            );
 
         return http.build();
     }
 
 }
-
-

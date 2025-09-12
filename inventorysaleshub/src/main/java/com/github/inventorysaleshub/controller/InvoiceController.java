@@ -1,10 +1,13 @@
 package com.github.inventorysaleshub.controller;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.modelmapper.ModelMapper;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -39,6 +42,7 @@ public class InvoiceController {
     // --- Get all invoices ---
     @Operation(summary = "Get all invoices", description = "Retrieve all invoices")
     @ApiResponse(responseCode = "200", description = "Invoices retrieved successfully")
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping
     public ResponseEntity<ApiResponseDTO<List<InvoiceDTO>>> getAllInvoices() {
         List<InvoiceDTO> invoices = invoiceRepository.findAll()
@@ -52,17 +56,37 @@ public class InvoiceController {
     @Operation(summary = "Get an invoice by ID", description = "Retrieve a single invoice by its ID")
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = "Invoice retrieved successfully"),
-        @ApiResponse(responseCode = "404", description = "Invoice not found")
+        @ApiResponse(responseCode = "404", description = "Invoice not found"),
+        @ApiResponse(responseCode = "403", description = "Access denied")
     })
+    @PreAuthorize("hasAnyRole('USER','ADMIN')")
     @GetMapping("/{id}")
-    public ResponseEntity<ApiResponseDTO<InvoiceDTO>> getInvoiceById(@PathVariable Long id) {
-        return invoiceRepository.findById(id)
-                .map(invoice -> ResponseEntity.ok(new ApiResponseDTO<>(true, "Invoice retrieved successfully",
-                        modelMapper.map(invoice, InvoiceDTO.class))))
-                .orElseGet(() -> {
-                    ApiResponseDTO<InvoiceDTO> response = new ApiResponseDTO<>(false, "Invoice not found", null);
-                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
-                });
+    public ResponseEntity<ApiResponseDTO<InvoiceDTO>> getInvoiceById(
+            @PathVariable Long id,
+            Authentication authentication) {
+
+        Optional<Invoice> invoiceOpt = invoiceRepository.findById(id);
+
+        if (invoiceOpt.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(new ApiResponseDTO<>(false, "Invoice not found", null));
+        }
+
+        Invoice invoice = invoiceOpt.get();
+
+        String currentUserEmail = authentication.getName();
+        String ownerEmail = invoice.getOrder().getUser().getEmail();
+
+        boolean isAdmin = authentication.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+
+        if (!isAdmin && !ownerEmail.equals(currentUserEmail)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(new ApiResponseDTO<>(false, "You are not allowed to access this invoice", null));
+        }
+
+        return ResponseEntity.ok(new ApiResponseDTO<>(true, "Invoice retrieved successfully",
+                modelMapper.map(invoice, InvoiceDTO.class)));
     }
 
     // --- Create a new invoice ---
@@ -71,6 +95,7 @@ public class InvoiceController {
         @ApiResponse(responseCode = "201", description = "Invoice created successfully"),
         @ApiResponse(responseCode = "400", description = "Invalid request")
     })
+    @PreAuthorize("hasRole('USER')")
     @PostMapping
     public ResponseEntity<ApiResponseDTO<InvoiceDTO>> createInvoice(
             @Valid @RequestBody InvoiceRequestDTO request) {
@@ -94,6 +119,7 @@ public class InvoiceController {
         @ApiResponse(responseCode = "200", description = "Invoice updated successfully"),
         @ApiResponse(responseCode = "404", description = "Invoice not found")
     })
+    @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/{id}")
     public ResponseEntity<ApiResponseDTO<InvoiceDTO>> updateInvoice(
             @PathVariable Long id,
@@ -124,6 +150,7 @@ public class InvoiceController {
         @ApiResponse(responseCode = "200", description = "Invoice deleted successfully"),
         @ApiResponse(responseCode = "404", description = "Invoice not found")
     })
+    @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{id}")
     public ResponseEntity<ApiResponseDTO<Void>> deleteInvoice(@PathVariable Long id) {
         return invoiceRepository.findById(id)
@@ -138,3 +165,4 @@ public class InvoiceController {
                 });
     }
 }
+

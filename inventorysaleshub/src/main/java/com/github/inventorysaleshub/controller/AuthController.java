@@ -9,6 +9,7 @@ import com.github.inventorysaleshub.security.JwtProvider;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import jakarta.annotation.security.PermitAll;
 import jakarta.validation.Valid;
 import org.modelmapper.ModelMapper;
 import org.springframework.http.HttpStatus;
@@ -47,6 +48,7 @@ public class AuthController {
         @ApiResponse(responseCode = "401", description = "Invalid email or password")
     })
     @PostMapping("/login")
+    @PermitAll // Public endpoint (no authentication required)
     public ResponseEntity<ApiResponseDTO<LoginResponseDTO>> login(@Valid @RequestBody LoginRequestDTO request) {
         Optional<User> userOpt = userRepository.findByEmail(request.getEmail());
 
@@ -58,6 +60,7 @@ public class AuthController {
         User user = userOpt.get();
         String token = jwtProvider.generateToken(user.getEmail(), user.getRole().getName());
 
+        // Build response DTO
         LoginResponseDTO response = new LoginResponseDTO();
         response.setToken(token);
         response.setUserId(user.getId());
@@ -75,27 +78,32 @@ public class AuthController {
         @ApiResponse(responseCode = "400", description = "Invalid request or email already taken")
     })
     @PostMapping("/register")
+    @PermitAll // Public endpoint (no authentication required)
     public ResponseEntity<ApiResponseDTO<UserDTO>> register(@Valid @RequestBody RegisterDTO request) {
+        // Check if email is already registered
         if (userRepository.findByEmail(request.getEmail()).isPresent()) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body(new ApiResponseDTO<>(false, "Email is already in use", null));
         }
 
+        // Retrieve role
         Role role = roleRepository.findById(request.getRoleId())
                 .orElseThrow(() -> new RuntimeException("Role not found with ID: " + request.getRoleId()));
 
+        // Create user
         User user = new User();
         user.setName(request.getName());
         user.setEmail(request.getEmail());
         user.setPassword(passwordEncoder.encode(request.getPassword())); // Encode password
         user.setRole(role);
 
+        // Save in DB
         User saved = userRepository.save(user);
 
+        // Map to DTO
         UserDTO dto = modelMapper.map(saved, UserDTO.class);
+
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(new ApiResponseDTO<>(true, "User registered successfully", dto));
     }
 }
-
-

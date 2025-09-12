@@ -5,6 +5,7 @@ import java.util.List;
 import org.modelmapper.ModelMapper;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import com.github.inventorysaleshub.dto.ApiResponseDTO;
@@ -34,6 +35,7 @@ public class RoleController {
     @Operation(summary = "Get all roles", description = "Retrieve all roles")
     @ApiResponse(responseCode = "200", description = "Roles retrieved successfully")
     @GetMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponseDTO<List<RoleDTO>>> getAllRoles() {
         List<RoleDTO> roles = roleRepository.findAll()
                 .stream()
@@ -49,6 +51,7 @@ public class RoleController {
         @ApiResponse(responseCode = "404", description = "Role not found")
     })
     @GetMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponseDTO<RoleDTO>> getRoleById(@PathVariable Long id) {
         return roleRepository.findById(id)
                 .map(role -> ResponseEntity.ok(new ApiResponseDTO<>(true, "Role retrieved successfully",
@@ -66,6 +69,7 @@ public class RoleController {
         @ApiResponse(responseCode = "400", description = "Invalid request")
     })
     @PostMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponseDTO<RoleDTO>> createRole(
             @Valid @RequestBody RoleRequestDTO request) {
 
@@ -84,6 +88,7 @@ public class RoleController {
         @ApiResponse(responseCode = "404", description = "Role not found")
     })
     @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponseDTO<RoleDTO>> updateRole(
             @PathVariable Long id,
             @Valid @RequestBody RoleRequestDTO request) {
@@ -108,6 +113,7 @@ public class RoleController {
         @ApiResponse(responseCode = "404", description = "Role not found")
     })
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponseDTO<Void>> deleteRole(@PathVariable Long id) {
         return roleRepository.findById(id)
                 .map(role -> {
@@ -121,5 +127,6 @@ public class RoleController {
                 });
     }
 }
+
 
 

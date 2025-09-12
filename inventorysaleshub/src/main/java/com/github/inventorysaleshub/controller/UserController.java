@@ -12,6 +12,7 @@ import jakarta.validation.Valid;
 import org.modelmapper.ModelMapper;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -36,6 +37,7 @@ public class UserController {
     // --- Get all users ---
     @Operation(summary = "Get all users", description = "Retrieve all registered users")
     @ApiResponse(responseCode = "200", description = "Users retrieved successfully")
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping
     public ResponseEntity<ApiResponseDTO<List<UserDTO>>> getAllUsers() {
         List<UserDTO> users = userRepository.findAll()
@@ -51,6 +53,7 @@ public class UserController {
         @ApiResponse(responseCode = "200", description = "User retrieved successfully"),
         @ApiResponse(responseCode = "404", description = "User not found")
     })
+    @PreAuthorize("#id == authentication.principal.id or hasRole('ADMIN')")
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponseDTO<UserDTO>> getUserById(@PathVariable Long id) {
         return userRepository.findById(id)
@@ -66,6 +69,7 @@ public class UserController {
         @ApiResponse(responseCode = "201", description = "User created successfully"),
         @ApiResponse(responseCode = "400", description = "Invalid request")
     })
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping
     public ResponseEntity<ApiResponseDTO<UserDTO>> createUser(
             @Valid @RequestBody UserRequestDTO request) {
@@ -89,6 +93,7 @@ public class UserController {
         @ApiResponse(responseCode = "200", description = "User updated successfully"),
         @ApiResponse(responseCode = "404", description = "User not found")
     })
+    @PreAuthorize("#id == authentication.principal.id or hasRole('ADMIN')")
     @PutMapping("/{id}")
     public ResponseEntity<ApiResponseDTO<UserDTO>> updateUser(
             @PathVariable Long id,
@@ -116,6 +121,7 @@ public class UserController {
         @ApiResponse(responseCode = "204", description = "User deleted successfully"),
         @ApiResponse(responseCode = "404", description = "User not found")
     })
+    @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{id}")
     public ResponseEntity<ApiResponseDTO<Void>> deleteUser(@PathVariable Long id) {
         return userRepository.findById(id)

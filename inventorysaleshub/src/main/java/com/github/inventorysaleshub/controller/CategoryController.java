@@ -5,6 +5,7 @@ import java.util.List;
 import org.modelmapper.ModelMapper;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import com.github.inventorysaleshub.dto.ApiResponseDTO;
@@ -34,6 +35,7 @@ public class CategoryController {
     @Operation(summary = "Get all categories", description = "Retrieve all categories")
     @ApiResponse(responseCode = "200", description = "Categories retrieved successfully")
     @GetMapping
+    @PreAuthorize("permitAll()")
     public ResponseEntity<ApiResponseDTO<List<CategoryDTO>>> getAllCategories() {
         List<CategoryDTO> categories = categoryRepository.findAll()
                 .stream()
@@ -49,6 +51,7 @@ public class CategoryController {
         @ApiResponse(responseCode = "404", description = "Category not found")
     })
     @GetMapping("/{id}")
+    @PreAuthorize("permitAll()")
     public ResponseEntity<ApiResponseDTO<CategoryDTO>> getCategoryById(@PathVariable Long id) {
         return categoryRepository.findById(id)
                 .map(category -> ResponseEntity.ok(new ApiResponseDTO<>(true, "Category retrieved successfully",
@@ -66,6 +69,7 @@ public class CategoryController {
         @ApiResponse(responseCode = "400", description = "Invalid request")
     })
     @PostMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponseDTO<CategoryDTO>> createCategory(
             @Valid @RequestBody CategoryRequestDTO request) {
 
@@ -84,6 +88,7 @@ public class CategoryController {
         @ApiResponse(responseCode = "404", description = "Category not found")
     })
     @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponseDTO<CategoryDTO>> updateCategory(
             @PathVariable Long id,
             @Valid @RequestBody CategoryRequestDTO request) {
@@ -108,6 +113,7 @@ public class CategoryController {
         @ApiResponse(responseCode = "404", description = "Category not found")
     })
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponseDTO<Void>> deleteCategory(@PathVariable Long id) {
         return categoryRepository.findById(id)
                 .map(category -> {
@@ -121,4 +127,5 @@ public class CategoryController {
                 });
     }
 }
+
 
