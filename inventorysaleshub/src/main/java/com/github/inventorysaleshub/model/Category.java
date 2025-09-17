@@ -5,6 +5,7 @@ import jakarta.validation.constraints.*;
 import java.util.List;
 
 @Entity
+@Table(name = "categories")
 public class Category {
 
     @Id

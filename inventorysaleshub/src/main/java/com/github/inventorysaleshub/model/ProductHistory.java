@@ -5,6 +5,7 @@ import jakarta.validation.constraints.*;
 import java.time.LocalDateTime;
 
 @Entity
+@Table(name = "product_history")
 public class ProductHistory {
 
     @Id

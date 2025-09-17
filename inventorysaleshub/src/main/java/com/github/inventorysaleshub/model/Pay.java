@@ -2,8 +2,10 @@ package com.github.inventorysaleshub.model;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
+import java.time.LocalDateTime;
 
 @Entity
+@Table(name = "payments")
 public class Pay {
 
     @Id
@@ -23,13 +25,17 @@ public class Pay {
     @NotNull(message = "Payment must be associated with an order")
     private Order order; // Ensures every payment is linked to an order
 
+    @Column(name = "payment_date")
+    private LocalDateTime paymentDate; // Stores the date/time when the payment was made
+
     public Pay() {
     }
 
-    public Pay(String method, String status, Order order) {
+    public Pay(String method, String status, Order order, LocalDateTime paymentDate) {
         this.method = method;
         this.status = status;
         this.order = order;
+        this.paymentDate = paymentDate;
     }
 
     public Long getId() {
@@ -59,5 +65,11 @@ public class Pay {
     public void setOrder(Order order) {
         this.order = order;
     }
-    
+
+    public LocalDateTime getPaymentDate() {
+        return paymentDate;
+    }
+    public void setPaymentDate(LocalDateTime paymentDate) {
+        this.paymentDate = paymentDate;
+    }
 }

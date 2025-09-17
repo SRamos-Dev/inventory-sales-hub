@@ -1,4 +1,4 @@
-package com.github.inventorysaleshub.service;
+package com.github.inventorysaleshub.security.service;
 
 import com.github.inventorysaleshub.dto.*;
 import com.github.inventorysaleshub.model.Role;

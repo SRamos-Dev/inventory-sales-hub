@@ -17,6 +17,13 @@ public class TopCustomerDTO {
         this.totalSpent = totalSpent;
     }
 
+    public TopCustomerDTO(Long customerId, String customerName, long ordersCount) {
+    this.customerId = customerId;
+    this.customerName = customerName;
+    this.ordersCount = ordersCount;
+    this.totalSpent = 0; // default
+    }
+
     // Getters and setters
     public Long getCustomerId() {
         return customerId;

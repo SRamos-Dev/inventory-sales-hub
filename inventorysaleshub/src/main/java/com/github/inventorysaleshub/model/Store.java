@@ -5,6 +5,7 @@ import jakarta.validation.constraints.*;
 import java.util.List;
 
 @Entity
+@Table(name = "stores")
 public class Store {
 
     @Id
@@ -25,7 +26,6 @@ public class Store {
     public Long getId() {
         return id;
     }
-
     public void setId(Long id) {
         this.id = id;
     }
@@ -33,7 +33,6 @@ public class Store {
     public String getName() {
         return name;
     }
-
     public void setName(String name) {
         this.name = name;
     }
@@ -41,7 +40,6 @@ public class Store {
     public String getLocation() {
         return location;
     }
-
     public void setLocation(String location) {
         this.location = location;
     }

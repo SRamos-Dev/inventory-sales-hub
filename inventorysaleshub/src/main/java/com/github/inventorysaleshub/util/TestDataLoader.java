@@ -69,7 +69,7 @@ public class TestDataLoader {
         orderDetailsRepository.saveAll(List.of(d1, d2));
 
         // ----- Simulate payment -----
-        Pay pay = new Pay("Card", "Paid", order);
+        Pay pay = new Pay("Card", "Paid", order, LocalDateTime.now());
         payRepository.save(pay);
 
         // ----- Generate invoice -----
