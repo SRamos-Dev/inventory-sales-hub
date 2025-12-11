@@ -1,0 +1,8 @@
+%% Architecture high-level (layers)
+graph LR
+  A[Client] --> B[Controller]
+  B --> C[Service]
+  C --> D[Repository]
+  D --> E[(Database)]
+  C --> F[Security (JWT)]
+  C --> G[DTO / Mappers]
