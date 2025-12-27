@@ -1,5 +1,6 @@
 package com.github.inventorysaleshub.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
 import java.util.List;
@@ -17,6 +18,7 @@ public class Role {
     private String name; // Restricts valid roles
 
     @OneToMany(mappedBy = "role")
+    @JsonIgnore
     private List<User> users;
 
     public Role() {
