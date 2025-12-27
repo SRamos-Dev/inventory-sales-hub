@@ -1,39 +1,42 @@
+version: '3.8'
+
 services:
-  mysql:
+  inventory_mysql:
     image: mysql:8.0
     container_name: inventory_mysql
+    ports:
+      - "3307:3306"
     environment:
       MYSQL_ROOT_PASSWORD: root
       MYSQL_DATABASE: inventory_db
-      MYSQL_USER: user
-      MYSQL_PASSWORD: password
-    ports:
-      - "3307:3306"
     volumes:
       - mysql_data:/var/lib/mysql
-      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
     networks:
-      - inventory_network
+      - backend_network
+    healthcheck:
+      test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost"]
+      timeout: 10s
+      retries: 5
 
-  app:
+  backend-app:
     build: .
-    container_name: inventory_app
+    image: backend-app:latest
+    container_name: backend_prod
     ports:
       - "8080:8080"
     environment:
-      MYSQL_HOST: mysql
+      MYSQL_HOST: inventory_mysql
+      MYSQL_PASSWORD: root
       MYSQL_PORT: 3306
-      MYSQL_USER: user
-      MYSQL_PASSWORD: password
-      JWT_SECRET: your-secret-key-here
-      JWT_EXPIRATION: 86400
     depends_on:
-      - mysql
+      inventory_mysql:
+        condition: service_healthy
     networks:
-      - inventory_network
+      - backend_network
+
+networks:
+  backend_network:
+    driver: bridge
 
 volumes:
   mysql_data:
-
-networks:
-  inventory_network:

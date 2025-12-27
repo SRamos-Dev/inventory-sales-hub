@@ -23,11 +23,11 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
     long countTotalOrders();
 
     // Returns total revenue computed from order details (price * quantity)
-    @Query("SELECT SUM(d.price * d.quantity) FROM Order o JOIN o.details d")
+    @Query("SELECT SUM(d.price * d.quantity) FROM Order o JOIN o.orderDetails d")
     BigDecimal calculateTotalRevenue();
 
     // Returns average order value computed from order details
-    @Query("SELECT AVG(d.price * d.quantity) FROM Order o JOIN o.details d")
+    @Query("SELECT AVG(d.price * d.quantity) FROM Order o JOIN o.orderDetails d")
     BigDecimal calculateAverageOrderValue();
 
 
@@ -39,6 +39,7 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
     @Query("SELECT new com.github.inventorysaleshub.model.dto.TopCustomerDTO(" +
            "u.id, u.name, COUNT(o), SUM(d.price * d.quantity)) " +
            "FROM Order o JOIN o.orderDetails d JOIN d.product p " +
+           "JOIN o.user u " +
            "GROUP BY u.id, u.name " +
            "ORDER BY SUM(d.price * d.quantity) DESC")
     List<TopCustomerDTO> findTopCustomers();
