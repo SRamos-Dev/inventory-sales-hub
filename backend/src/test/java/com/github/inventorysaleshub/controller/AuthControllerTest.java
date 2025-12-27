@@ -1,4 +1,4 @@
-package test.java.com.github.inventorysaleshub.controller;
+package com.github.inventorysaleshub.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.inventorysaleshub.model.dto.LoginRequestDTO;

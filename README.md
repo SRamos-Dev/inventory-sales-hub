@@ -1,5 +1,32 @@
 
+# Inventory Sales Hub
+
+Sistema de Inventario y Ventas Seguro - Full Stack Application
+
+## 🏗️ Estructura del Proyecto
+
+Este repositorio contiene tanto el back-end como el front-end del sistema:
+
+- **`backend/`**: API REST con Spring Boot (Java) - ✅ Listo
+- **`frontend/`**: Aplicación web con React.js (próximamente)
+- **`docs/`**: Documentación completa del proyecto
+
+## 🚀 Inicio Rápido
+
+### Back-end
+```bash
+cd backend
+mvn spring-boot:run
+```
+
+### Front-end (cuando esté listo)
+```bash
+cd frontend
+npm start
+```
+
 ---
+
 ## 📚 Tabla de contenidos
 
 - [Resumen del proyecto](docs/00-resumen-del-proyecto.md)
