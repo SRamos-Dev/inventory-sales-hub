@@ -22,117 +22,183 @@ import java.util.stream.Collectors;
 @RequestMapping("/api/users")
 public class UserController {
 
-    private final UserRepository userRepository;
-    private final RoleRepository roleRepository;
-    private final ModelMapper modelMapper;
+        private final UserRepository userRepository;
+        private final RoleRepository roleRepository;
+        private final ModelMapper modelMapper;
+        private final org.springframework.security.crypto.password.PasswordEncoder passwordEncoder;
 
-    public UserController(UserRepository userRepository,
-                          RoleRepository roleRepository,
-                          ModelMapper modelMapper) {
-        this.userRepository = userRepository;
-        this.roleRepository = roleRepository;
-        this.modelMapper = modelMapper;
-    }
+        public UserController(UserRepository userRepository,
+                        RoleRepository roleRepository,
+                        ModelMapper modelMapper,
+                        org.springframework.security.crypto.password.PasswordEncoder passwordEncoder) {
+                this.userRepository = userRepository;
+                this.roleRepository = roleRepository;
+                this.modelMapper = modelMapper;
+                this.passwordEncoder = passwordEncoder;
+        }
 
-    // --- Get all users ---
-    @Operation(summary = "Get all users", description = "Retrieve all registered users")
-    @ApiResponse(responseCode = "200", description = "Users retrieved successfully")
-    @PreAuthorize("hasRole('ADMIN')")
-    @GetMapping
-    public ResponseEntity<ApiResponseDTO<List<UserDTO>>> getAllUsers() {
-        List<UserDTO> users = userRepository.findAll()
-                .stream()
-                .map(u -> modelMapper.map(u, UserDTO.class))
-                .collect(Collectors.toList());
-        return ResponseEntity.ok(new ApiResponseDTO<>(true, "Users retrieved successfully", users));
-    }
+        // --- Get all users ---
+        @Operation(summary = "Get all users", description = "Retrieve all registered users")
+        @ApiResponse(responseCode = "200", description = "Users retrieved successfully")
+        @PreAuthorize("hasRole('ADMIN')")
+        @GetMapping
+        public ResponseEntity<ApiResponseDTO<List<UserDTO>>> getAllUsers() {
+                List<UserDTO> users = userRepository.findAll()
+                                .stream()
+                                .map(u -> modelMapper.map(u, UserDTO.class))
+                                .collect(Collectors.toList());
+                return ResponseEntity.ok(new ApiResponseDTO<>(true, "Users retrieved successfully", users));
+        }
 
-    // --- Get user by ID ---
-    @Operation(summary = "Get a user by ID", description = "Retrieve a single user by its ID")
-    @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "User retrieved successfully"),
-        @ApiResponse(responseCode = "404", description = "User not found")
-    })
-    @PreAuthorize("#id == authentication.principal.id or hasRole('ADMIN')")
-    @GetMapping("/{id}")
-    public ResponseEntity<ApiResponseDTO<UserDTO>> getUserById(@PathVariable Long id) {
-        return userRepository.findById(id)
-                .map(user -> ResponseEntity.ok(new ApiResponseDTO<>(true, "User retrieved successfully",
-                        modelMapper.map(user, UserDTO.class))))
-                .orElse(ResponseEntity.status(HttpStatus.NOT_FOUND)
-                        .body(new ApiResponseDTO<>(false, "User not found", null)));
-    }
+        // --- Get user by ID ---
+        @Operation(summary = "Get a user by ID", description = "Retrieve a single user by its ID")
+        @ApiResponses(value = {
+                        @ApiResponse(responseCode = "200", description = "User retrieved successfully"),
+                        @ApiResponse(responseCode = "404", description = "User not found")
+        })
+        @PreAuthorize("#id == authentication.principal.id or hasRole('ADMIN')")
+        @GetMapping("/{id}")
+        public ResponseEntity<ApiResponseDTO<UserDTO>> getUserById(@PathVariable Long id) {
+                return userRepository.findById(id)
+                                .map(user -> ResponseEntity.ok(new ApiResponseDTO<>(true, "User retrieved successfully",
+                                                modelMapper.map(user, UserDTO.class))))
+                                .orElse(ResponseEntity.status(HttpStatus.NOT_FOUND)
+                                                .body(new ApiResponseDTO<>(false, "User not found", null)));
+        }
 
-    // --- Create a new user ---
-    @Operation(summary = "Create a new user", description = "Register a new user with role")
-    @ApiResponses(value = {
-        @ApiResponse(responseCode = "201", description = "User created successfully"),
-        @ApiResponse(responseCode = "400", description = "Invalid request")
-    })
-    @PreAuthorize("hasRole('ADMIN')")
-    @PostMapping
-    public ResponseEntity<ApiResponseDTO<UserDTO>> createUser(
-            @Valid @RequestBody UserRequestDTO request) {
+        // --- Create a new user ---
+        @Operation(summary = "Create a new user", description = "Register a new user with role")
+        @ApiResponses(value = {
+                        @ApiResponse(responseCode = "201", description = "User created successfully"),
+                        @ApiResponse(responseCode = "400", description = "Invalid request")
+        })
+        @PreAuthorize("hasRole('ADMIN')")
+        @PostMapping
+        public ResponseEntity<ApiResponseDTO<UserDTO>> createUser(
+                        @Valid @RequestBody UserRequestDTO request) {
 
-        User user = modelMapper.map(request, User.class);
+                User user = modelMapper.map(request, User.class);
 
-        Role role = roleRepository.findById(request.getRoleId())
-                .orElseThrow(() -> new RuntimeException("Role not found with ID: " + request.getRoleId()));
+                Role role = roleRepository.findById(request.getRoleId())
+                                .orElseThrow(() -> new RuntimeException(
+                                                "Role not found with ID: " + request.getRoleId()));
 
-        user.setRole(role);
-        User saved = userRepository.save(user);
+                user.setRole(role);
+                User saved = userRepository.save(user);
 
-        UserDTO response = modelMapper.map(saved, UserDTO.class);
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .body(new ApiResponseDTO<>(true, "User created successfully", response));
-    }
+                UserDTO response = modelMapper.map(saved, UserDTO.class);
+                return ResponseEntity.status(HttpStatus.CREATED)
+                                .body(new ApiResponseDTO<>(true, "User created successfully", response));
+        }
 
-    // --- Update a user ---
-    @Operation(summary = "Update a user", description = "Update an existing user by ID")
-    @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "User updated successfully"),
-        @ApiResponse(responseCode = "404", description = "User not found")
-    })
-    @PreAuthorize("#id == authentication.principal.id or hasRole('ADMIN')")
-    @PutMapping("/{id}")
-    public ResponseEntity<ApiResponseDTO<UserDTO>> updateUser(
-            @PathVariable Long id,
-            @Valid @RequestBody UserRequestDTO request) {
+        // --- Update a user ---
+        @Operation(summary = "Update a user", description = "Update an existing user by ID")
+        @ApiResponses(value = {
+                        @ApiResponse(responseCode = "200", description = "User updated successfully"),
+                        @ApiResponse(responseCode = "404", description = "User not found")
+        })
+        @PreAuthorize("#id == authentication.principal.id or hasRole('ADMIN')")
+        @PutMapping("/{id}")
+        public ResponseEntity<ApiResponseDTO<UserDTO>> updateUser(
+                        @PathVariable Long id,
+                        @Valid @RequestBody UserRequestDTO request) {
 
-        return userRepository.findById(id)
-                .map(user -> {
-                    modelMapper.map(request, user);
+                return userRepository.findById(id)
+                                .map(user -> {
+                                        modelMapper.map(request, user);
 
-                    Role role = roleRepository.findById(request.getRoleId())
-                            .orElseThrow(() -> new RuntimeException("Role not found with ID: " + request.getRoleId()));
-                    user.setRole(role);
+                                        Role role = roleRepository.findById(request.getRoleId())
+                                                        .orElseThrow(() -> new RuntimeException(
+                                                                        "Role not found with ID: "
+                                                                                        + request.getRoleId()));
+                                        user.setRole(role);
 
-                    User updated = userRepository.save(user);
-                    return ResponseEntity.ok(new ApiResponseDTO<>(true, "User updated successfully",
-                            modelMapper.map(updated, UserDTO.class)));
-                })
-                .orElse(ResponseEntity.status(HttpStatus.NOT_FOUND)
-                        .body(new ApiResponseDTO<>(false, "User not found", null)));
-    }
+                                        User updated = userRepository.save(user);
+                                        return ResponseEntity.ok(new ApiResponseDTO<>(true, "User updated successfully",
+                                                        modelMapper.map(updated, UserDTO.class)));
+                                })
+                                .orElse(ResponseEntity.status(HttpStatus.NOT_FOUND)
+                                                .body(new ApiResponseDTO<>(false, "User not found", null)));
+        }
 
-    // --- Delete a user ---
-    @Operation(summary = "Delete a user", description = "Remove a user by ID")
-    @ApiResponses(value = {
-        @ApiResponse(responseCode = "204", description = "User deleted successfully"),
-        @ApiResponse(responseCode = "404", description = "User not found")
-    })
-    @PreAuthorize("hasRole('ADMIN')")
-    @DeleteMapping("/{id}")
-    public ResponseEntity<ApiResponseDTO<Void>> deleteUser(@PathVariable Long id) {
-        return userRepository.findById(id)
-                .map(user -> {
-                    userRepository.delete(user);
-                    ApiResponseDTO<Void> response = new ApiResponseDTO<>(true, "User deleted successfully", null);
-                    return ResponseEntity.ok(response);
-                })
-                .orElseGet(() -> {
-                    ApiResponseDTO<Void> response = new ApiResponseDTO<>(false, "User not found", null);
-                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
-                });
-    }
+        // --- Delete a user ---
+        @Operation(summary = "Delete a user", description = "Remove a user by ID")
+        @ApiResponses(value = {
+                        @ApiResponse(responseCode = "204", description = "User deleted successfully"),
+                        @ApiResponse(responseCode = "404", description = "User not found")
+        })
+        @PreAuthorize("hasRole('ADMIN')")
+        @DeleteMapping("/{id}")
+        public ResponseEntity<ApiResponseDTO<Void>> deleteUser(@PathVariable Long id) {
+                return userRepository.findById(id)
+                                .map(user -> {
+                                        userRepository.delete(user);
+                                        ApiResponseDTO<Void> response = new ApiResponseDTO<>(true,
+                                                        "User deleted successfully", null);
+                                        return ResponseEntity.ok(response);
+                                })
+                                .orElseGet(() -> {
+                                        ApiResponseDTO<Void> response = new ApiResponseDTO<>(false, "User not found",
+                                                        null);
+                                        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+                                });
+        }
+
+        // --- Update user profile ---
+        @Operation(summary = "Update user profile", description = "Update the authenticated user's profile")
+        @ApiResponses(value = {
+                        @ApiResponse(responseCode = "200", description = "Profile updated successfully"),
+                        @ApiResponse(responseCode = "400", description = "Invalid current password"),
+                        @ApiResponse(responseCode = "404", description = "User not found")
+        })
+        @PostMapping("/update")
+        public ResponseEntity<ApiResponseDTO<UserDTO>> updateProfile(
+                        @RequestBody UpdateProfileRequestDTO request,
+                        org.springframework.security.core.Authentication authentication) {
+
+                System.out.println("Processing update for: " + authentication.getName());
+                try {
+                        User user = userRepository.findByEmail(authentication.getName())
+                                        .orElseThrow(() -> new RuntimeException("User not found"));
+
+                        // 1. Update fields
+                        if (request.getName() != null && !request.getName().isEmpty()) {
+                                user.setName(request.getName());
+                        }
+                        if (request.getProfileImage() != null && !request.getProfileImage().isEmpty()) {
+                                user.setProfileImage(request.getProfileImage());
+                        }
+                        if (request.getNewPassword() != null && !request.getNewPassword().isEmpty()) {
+                                if (request.getCurrentPassword() == null ||
+                                                !passwordEncoder.matches(request.getCurrentPassword(),
+                                                                user.getPassword())) {
+                                        return ResponseEntity.badRequest()
+                                                        .body(new ApiResponseDTO<>(false, "Invalid current password",
+                                                                        null));
+                                }
+                                user.setPassword(passwordEncoder.encode(request.getNewPassword()));
+                        }
+
+                        // 2. Save
+                        User updated = userRepository.save(user);
+                        System.out.println("User updated in DB: " + updated.getId());
+
+                        // 3. Manual Mapping (Fail-safe)
+                        UserDTO dto = new UserDTO();
+                        dto.setId(updated.getId());
+                        dto.setName(updated.getName());
+                        dto.setEmail(updated.getEmail());
+                        dto.setProfileImage(updated.getProfileImage());
+                        if (updated.getRole() != null) {
+                                dto.setRoleName(updated.getRole().getName());
+                        }
+
+                        return ResponseEntity.ok(new ApiResponseDTO<>(true, "Profile updated", dto));
+
+                } catch (Exception e) {
+                        e.printStackTrace(); // Logs to docker console
+                        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                                        .body(new ApiResponseDTO<>(false, "Server Error: " + e.getMessage(), null));
+                }
+        }
 }

@@ -100,8 +100,8 @@ public class AuthController {
         // Save in DB
         User saved = userRepository.save(user);
 
-        // Map to DTO
-        UserDTO dto = modelMapper.map(saved, UserDTO.class);
+        // Map to DTO using constructor
+        UserDTO dto = new UserDTO(saved);
 
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(new ApiResponseDTO<>(true, "User registered successfully", dto));

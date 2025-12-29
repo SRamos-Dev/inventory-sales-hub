@@ -29,6 +29,8 @@ public class User {
     @Size(min = 6, message = "Password must be at least 6 characters long")
     private String password; // Required for authentication
 
+    private String profileImage;
+
     @Column(name = "created_at")
     @Temporal(TemporalType.TIMESTAMP)
     private java.util.Date createdAt;
@@ -88,6 +90,13 @@ public class User {
 
     public List<Order> getOrders() {
         return orders;
+    }
+
+    public String getProfileImage() {
+    return profileImage;
+    }
+    public void setProfileImage(String profileImage) {
+        this.profileImage = profileImage;
     }
     
 }
