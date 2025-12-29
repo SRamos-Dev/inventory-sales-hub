@@ -29,6 +29,11 @@ public class Product {
     // Image URL
     private String imageUrl;
 
+    // Relationship with User (owner/creator of the product)
+    @ManyToOne
+    @JoinColumn(name = "user_id")
+    private User user;
+
     // Relationship with Category (Many products -> One category)
     @ManyToOne
     @JoinColumn(name = "category_id")
@@ -102,6 +107,13 @@ public class Product {
     }
     public void setImageUrl(String imageUrl) {
         this.imageUrl = imageUrl;
+    }
+
+    public User getUser() {
+        return user;
+    }
+    public void setUser(User user) {
+        this.user = user;
     }
 
     public Category getCategory() {

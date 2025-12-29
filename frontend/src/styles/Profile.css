@@ -36,7 +36,7 @@
     color: var(--text-secondary);
 }
 
-.edit-button {
+.edit-profile-button {
     /* Botón estilizado similar al de búsqueda */
     background-color: #ff7300c7;
     color: white;

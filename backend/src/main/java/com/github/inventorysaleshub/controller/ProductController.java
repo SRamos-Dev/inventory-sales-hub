@@ -3,10 +3,12 @@ package com.github.inventorysaleshub.controller;
 import com.github.inventorysaleshub.model.Product;
 import com.github.inventorysaleshub.model.Category;
 import com.github.inventorysaleshub.model.ProductHistory;
+import com.github.inventorysaleshub.model.User;
 import com.github.inventorysaleshub.model.dto.*;
 import com.github.inventorysaleshub.repository.ProductRepository;
 import com.github.inventorysaleshub.repository.CategoryRepository;
 import com.github.inventorysaleshub.repository.ProductHistoryRepository;
+import com.github.inventorysaleshub.repository.UserRepository;
 import com.github.inventorysaleshub.service.FileStorageService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -18,6 +20,7 @@ import org.springframework.data.domain.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -34,26 +37,45 @@ public class ProductController {
     private final ModelMapper modelMapper;
     private final CategoryRepository categoryRepository;
     private final FileStorageService fileStorageService;
+    private final UserRepository userRepository;
 
     public ProductController(ProductRepository productRepository,
                              ProductHistoryRepository productHistoryRepository,
                              ModelMapper modelMapper,
                              CategoryRepository categoryRepository,
-                             FileStorageService fileStorageService) {
+                             FileStorageService fileStorageService,
+                             UserRepository userRepository) {
         this.productRepository = productRepository;
         this.productHistoryRepository = productHistoryRepository;
         this.modelMapper = modelMapper;
         this.categoryRepository = categoryRepository;
         this.fileStorageService = fileStorageService;
+        this.userRepository = userRepository;
     }
 
     // --- Get all products ---
     @Operation(summary = "Get all products", description = "Retrieve all products from inventory")
     @ApiResponse(responseCode = "200", description = "Products retrieved successfully")
-    @PreAuthorize("hasAnyRole('ADMIN','USER')")
     @GetMapping
     public ResponseEntity<ApiResponseDTO<List<ProductDTO>>> getAllProducts() {
         List<ProductDTO> products = productRepository.findAll()
+                .stream()
+                .map(ProductDTO::new)
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(new ApiResponseDTO<>(true, "Products retrieved successfully", products));
+    }
+
+    // --- Get my products (for management) ---
+    @Operation(summary = "Get my products", description = "Retrieve products owned by the authenticated user")
+    @ApiResponse(responseCode = "200", description = "Products retrieved successfully")
+    @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping("/my-products")
+    public ResponseEntity<ApiResponseDTO<List<ProductDTO>>> getMyProducts(Authentication authentication) {
+        String currentUserEmail = authentication.getName();
+        User currentUser = userRepository.findByEmail(currentUserEmail)
+            .orElseThrow(() -> new RuntimeException("User not found"));
+
+        List<ProductDTO> products = productRepository.findByUserId(currentUser.getId())
                 .stream()
                 .map(ProductDTO::new)
                 .collect(Collectors.toList());
@@ -90,7 +112,13 @@ public class ProductController {
             @RequestParam("price") Double price,
             @RequestParam("stock") Integer stock,
             @RequestParam("categoryId") Long categoryId,
-            @RequestPart(value = "image", required = false) MultipartFile image) {
+            @RequestPart(value = "image", required = false) MultipartFile image,
+            Authentication authentication) {
+
+        // Obtener usuario autenticado
+        String currentUserEmail = authentication.getName();
+        User currentUser = userRepository.findByEmail(currentUserEmail)
+            .orElseThrow(() -> new RuntimeException("User not found"));
 
         // Crear producto manualmente
         Product product = new Product();
@@ -98,6 +126,7 @@ public class ProductController {
         product.setDescription(description);
         product.setPrice(price);
         product.setStock(stock);
+        product.setUser(currentUser);
 
         // Asignar la categoría
         Category category = categoryRepository.findById(categoryId)
@@ -130,14 +159,47 @@ public class ProductController {
         @ApiResponse(responseCode = "404", description = "Product not found")
     })
     @PreAuthorize("hasRole('ADMIN')")
-    @PutMapping("/{id}")
+    @PutMapping(value = "/{id}", consumes = "multipart/form-data")
     public ResponseEntity<ApiResponseDTO<ProductDTO>> updateProduct(
             @PathVariable Long id,
-            @Valid @RequestBody ProductRequestDTO request) {
+            @RequestParam("name") String name,
+            @RequestParam("description") String description,
+            @RequestParam("price") Double price,
+            @RequestParam("stock") Integer stock,
+            @RequestParam("categoryId") Long categoryId,
+            @RequestPart(value = "image", required = false) MultipartFile image,
+            Authentication authentication) {
+
+        // Obtener usuario autenticado
+        String currentUserEmail = authentication.getName();
+        User currentUser = userRepository.findByEmail(currentUserEmail)
+            .orElseThrow(() -> new RuntimeException("User not found"));
 
         return productRepository.findById(id)
                 .map(product -> {
-                    modelMapper.map(request, product);
+                    // Verificar que el producto pertenece al usuario autenticado
+                    if (!product.getUser().getId().equals(currentUser.getId())) {
+                        throw new RuntimeException("You can only edit your own products");
+                    }
+                    product.setName(name);
+                    product.setDescription(description);
+                    product.setPrice(price);
+                    product.setStock(stock);
+
+                    // Actualizar la categoría
+                    Category category = categoryRepository.findById(categoryId)
+                        .orElseThrow(() -> new RuntimeException("Category not found"));
+                    product.setCategory(category);
+
+                    // Actualizar la imagen si se proporcionó una nueva
+                    if (image != null && !image.isEmpty()) {
+                        // Eliminar la imagen anterior si existe
+                        if (product.getImageUrl() != null) {
+                            fileStorageService.deleteFile(product.getImageUrl());
+                        }
+                        String filename = fileStorageService.storeFile(image);
+                        product.setImageUrl(filename);
+                    }
 
                     ProductHistory history = new ProductHistory();
                     history.setProduct(product);
@@ -146,8 +208,8 @@ public class ProductController {
                     productHistoryRepository.save(history);
 
                     Product updated = productRepository.save(product);
-                    return ResponseEntity.ok(new ApiResponseDTO<>(true, "Product updated successfully",
-                            modelMapper.map(updated, ProductDTO.class)));
+                    ProductDTO response = new ProductDTO(updated);
+                    return ResponseEntity.ok(new ApiResponseDTO<>(true, "Product updated successfully", response));
                 })
                 .orElse(ResponseEntity.status(HttpStatus.NOT_FOUND)
                         .body(new ApiResponseDTO<>(false, "Product not found", null)));
@@ -161,9 +223,18 @@ public class ProductController {
     })
     @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{id}")
-    public ResponseEntity<ApiResponseDTO<Void>> deleteProduct(@PathVariable Long id) {
+    public ResponseEntity<ApiResponseDTO<Void>> deleteProduct(@PathVariable Long id, Authentication authentication) {
+        // Obtener usuario autenticado
+        String currentUserEmail = authentication.getName();
+        User currentUser = userRepository.findByEmail(currentUserEmail)
+            .orElseThrow(() -> new RuntimeException("User not found"));
+
         return productRepository.findById(id)
                 .map(product -> {
+                    // Verificar que el producto pertenece al usuario autenticado
+                    if (!product.getUser().getId().equals(currentUser.getId())) {
+                        throw new RuntimeException("You can only delete your own products");
+                    }
                     productRepository.delete(product);
                     ApiResponseDTO<Void> response = new ApiResponseDTO<>(true, "Product deleted successfully", null);
                     return ResponseEntity.ok(response);

@@ -58,7 +58,7 @@ export function Profile() {
         <img src={user?.profileImage || '/default-avatar.png'} alt="Perfil" className="profile-avatar" />
         <h1>{user.name}</h1>
         <p>{user.roleName === 'ADMIN' ? 'Empresa' : 'Usuario'}</p>
-        <button onClick={() => setIsEditing(!isEditing)} className='edit-button'>{isEditing ? 'Cancelar' : 'Editar'}</button>
+        <button onClick={() => setIsEditing(!isEditing)} className='edit-profile-button'>{isEditing ? 'Cancelar' : 'Editar'}</button>
     </div>
     
     <div className="profile-info">
