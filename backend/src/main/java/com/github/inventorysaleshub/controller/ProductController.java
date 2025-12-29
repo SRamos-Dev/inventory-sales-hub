@@ -1,20 +1,25 @@
 package com.github.inventorysaleshub.controller;
 
 import com.github.inventorysaleshub.model.Product;
+import com.github.inventorysaleshub.model.Category;
 import com.github.inventorysaleshub.model.ProductHistory;
 import com.github.inventorysaleshub.model.dto.*;
 import com.github.inventorysaleshub.repository.ProductRepository;
+import com.github.inventorysaleshub.repository.CategoryRepository;
 import com.github.inventorysaleshub.repository.ProductHistoryRepository;
+import com.github.inventorysaleshub.service.FileStorageService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.validation.Valid;
 import org.modelmapper.ModelMapper;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -27,13 +32,19 @@ public class ProductController {
     private final ProductRepository productRepository;
     private final ProductHistoryRepository productHistoryRepository;
     private final ModelMapper modelMapper;
+    private final CategoryRepository categoryRepository;
+    private final FileStorageService fileStorageService;
 
     public ProductController(ProductRepository productRepository,
                              ProductHistoryRepository productHistoryRepository,
-                             ModelMapper modelMapper) {
+                             ModelMapper modelMapper,
+                             CategoryRepository categoryRepository,
+                             FileStorageService fileStorageService) {
         this.productRepository = productRepository;
         this.productHistoryRepository = productHistoryRepository;
         this.modelMapper = modelMapper;
+        this.categoryRepository = categoryRepository;
+        this.fileStorageService = fileStorageService;
     }
 
     // --- Get all products ---
@@ -72,11 +83,33 @@ public class ProductController {
         @ApiResponse(responseCode = "400", description = "Invalid request")
     })
     @PreAuthorize("hasRole('ADMIN')")
-    @PostMapping
+    @PostMapping(consumes = "multipart/form-data")
     public ResponseEntity<ApiResponseDTO<ProductDTO>> createProduct(
-            @Valid @RequestBody ProductRequestDTO request) {
+            @RequestParam("name") String name,
+            @RequestParam("description") String description,
+            @RequestParam("price") Double price,
+            @RequestParam("stock") Integer stock,
+            @RequestParam("categoryId") Long categoryId,
+            @RequestPart(value = "image", required = false) MultipartFile image) {
 
-        Product product = modelMapper.map(request, Product.class);
+        // Crear producto manualmente
+        Product product = new Product();
+        product.setName(name);
+        product.setDescription(description);
+        product.setPrice(price);
+        product.setStock(stock);
+
+        // Asignar la categoría
+        Category category = categoryRepository.findById(categoryId)
+            .orElseThrow(() -> new RuntimeException("Category not found"));
+        product.setCategory(category);
+
+        // Guardar la imagen si se proporcionó
+        if (image != null && !image.isEmpty()) {
+            String filename = fileStorageService.storeFile(image);
+            product.setImageUrl(filename);
+        }
+
         Product saved = productRepository.save(product);
 
         ProductHistory history = new ProductHistory();
@@ -85,7 +118,7 @@ public class ProductController {
         history.setTimestamp(LocalDateTime.now());
         productHistoryRepository.save(history);
 
-        ProductDTO response = modelMapper.map(saved, ProductDTO.class);
+        ProductDTO response = new ProductDTO(saved);
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(new ApiResponseDTO<>(true, "Product created successfully", response));
     }
@@ -228,5 +261,8 @@ public class ProductController {
                 .collect(Collectors.toList());
         return ResponseEntity.ok(new ApiResponseDTO<>(true, "Products retrieved successfully", products));
     }
+
+
+
 }
 

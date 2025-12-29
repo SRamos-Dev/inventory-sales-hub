@@ -14,7 +14,7 @@
   margin-top: 2vh;
   height: 7vh;
   transition: background-color 0.3s ease;
-  backdrop-filter: blur(3px);
+  backdrop-filter: blur(5px);
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 

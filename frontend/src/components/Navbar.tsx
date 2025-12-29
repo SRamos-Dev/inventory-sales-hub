@@ -33,7 +33,7 @@ export function Navbar() {
     return (
         <nav className="navbar">
             <Link to="/">
-                <img className="logo" src="/logo.png" alt="logo" />
+                <img className="logo" src="logo.png" alt="logo" />
             </Link>
             <div className="navbar-right">
             <div className="search-bar">
@@ -75,7 +75,7 @@ export function Navbar() {
                             <div className="dropdown-menu">
                                 <Link to="/profile" className="dropdown-item">Perfil</Link>
                                 <Link to="/settings" className="dropdown-item">Configuración</Link>
-                                {user.roleName === 'admin' && ( 
+                                {user.roleName === 'ADMIN' && ( 
                                     <Link to="/management" className="dropdown-item">Gestion</Link>
                                 )}
                                 <button onClick={logout} className="dropdown-item">Cerrar Sesión</button>

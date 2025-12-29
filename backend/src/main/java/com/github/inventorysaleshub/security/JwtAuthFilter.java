@@ -43,7 +43,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                         new UsernamePasswordAuthenticationToken(
                                 email,
                                 null,
-                                Collections.singleton(() -> role) // authority with role name
+                                Collections.singleton(() -> "ROLE_" + role)
                         );
 
                 authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));

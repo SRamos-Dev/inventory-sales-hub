@@ -9,6 +9,7 @@ public class ProductDTO {
     private double price;
     private int stock;
     private String categoryName;
+    private String imageUrl;
 
     public ProductDTO(Product product) {
         this.id = product.getId();
@@ -17,6 +18,7 @@ public class ProductDTO {
         this.price = product.getPrice();
         this.stock = product.getStock();
         this.categoryName = product.getCategory().getName();
+        this.imageUrl = product.getImageUrl();
     }
 
     // Getters y setters
@@ -66,6 +68,14 @@ public class ProductDTO {
 
     public void setCategoryName(String categoryName) {
         this.categoryName = categoryName;
+    }
+
+    public String getImageUrl() {
+        return imageUrl;
+    }
+
+    public void setImageUrl(String imageUrl) {
+        this.imageUrl = imageUrl;
     }
 
 }

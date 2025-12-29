@@ -26,6 +26,9 @@ public class Product {
     @Min(value = 1, message = "There must be at least 1 product in stock")
     private int stock;
 
+    // Image URL
+    private String imageUrl;
+
     // Relationship with Category (Many products -> One category)
     @ManyToOne
     @JoinColumn(name = "category_id")
@@ -92,6 +95,13 @@ public class Product {
     }
     public void setStock(int stock) {
         this.stock = stock;
+    }
+
+    public String getImageUrl() {
+        return imageUrl;
+    }
+    public void setImageUrl(String imageUrl) {
+        this.imageUrl = imageUrl;
     }
 
     public Category getCategory() {
