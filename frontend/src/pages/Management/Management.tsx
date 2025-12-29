@@ -4,6 +4,8 @@ import { useAuth } from "../../context/AuthContext";
 import { Navigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import '../../styles/Management.css'
+import type { Product } from "../../types/product.types";
+
 
 export function Management() {
     const { user } = useAuth();
@@ -14,6 +16,27 @@ export function Management() {
     const [stock, setStock] = useState(1)
     const [image, setImage] = useState<File | null>(null)
     const [categoryId, setCategoryId] = useState(2)
+    const [products, setProducts] = useState<Product[]>([]);
+
+    const fetchProducts = async () => {
+        try {
+            const token = localStorage.getItem('token');
+            const response = await axios.get('/api/products', {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+
+            // El backend devuelve {success, message, data}
+            if (response.data.data) {
+                setProducts(response.data.data);
+            }
+        } catch (error) {
+            console.error("Error cargando productos:", error);
+        }
+    };
+
+    useEffect(() => {
+        fetchProducts();
+    }, []);
 
     // Desactivar scroll cuando el formulario esté abierto
     useEffect(() => {
@@ -70,13 +93,14 @@ export function Management() {
         setStock(1)
         setImage(null)
         showCreateForm(false)
+        fetchProducts()
     }
 
     return (
         <div className="management-pannel">
-            <h1>Panel de gestion</h1>
+            <h1 className="title">Panel de gestion</h1>
             {!createForm &&
-            <button className="add-article-button" onClick={() => showCreateForm(true)}>Añadir Artículo</button>
+            <button className="add-article-button" onClick={() => showCreateForm(true)}><svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 24 24"><path fill="#000000" d="M10.5 13h-7c-.3 0-.5.2-.5.5v7c0 .3.2.5.5.5h7c.3 0 .5-.2.5-.5v-7c0-.3-.2-.5-.5-.5zm-.5 7H4v-6h6v6zm.5-17h-7c-.3 0-.5.2-.5.5v7c0 .3.2.5.5.5h7c.3 0 .5-.2.5-.5v-7c0-.3-.2-.5-.5-.5zm-.5 7H4V4h6v6zm10.5-7h-7c-.3 0-.5.2-.5.5v7c0 .3.2.5.5.5h7c.3 0 .5-.2.5-.5v-7c0-.3-.2-.5-.5-.5zm-.5 7h-6V4h6v6zm.5 6.5h-3v-3c0-.3-.2-.5-.5-.5s-.5.2-.5.5v3h-3c-.3 0-.5.2-.5.5s.2.5.5.5h3v3c0 .3.2.5.5.5s.5-.2.5-.5v-3h3c.3 0 .5-.2.5-.5s-.2-.5-.5-.5z"/></svg></button>
             }
             {createForm && (
             <div className="form-overlay" onClick={() => showCreateForm(false)}>
@@ -147,7 +171,23 @@ export function Management() {
             )}
 
             <ul className="management-items-list">
-                
+                {products.map((product) => (
+                    <li key={product.id} className="product-item-card">
+                        {product.imageUrl && (
+                            <img 
+                                src={`http://localhost:8080/uploads/products/${product.imageUrl}`}
+                                alt={product.name} 
+                                className="product-thumb" 
+                            />
+                        )}
+                        
+                        <div className="product-details">
+                            <strong>{product.name}</strong> - ${product.price}
+                            <br/>
+                            <small>Stock: {product.stock} | Categoría: {product.categoryName}</small>
+                        </div>
+                    </li>
+                ))}
             </ul>
         </div>
     )

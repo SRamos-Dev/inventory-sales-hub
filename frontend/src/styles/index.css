@@ -3,6 +3,7 @@
   --bg-primary: #ffffff;
   --bg-image: url("/bg-light.png");
   --bg-secondary: #f5f5f5;
+  --bg-secondary-card: #f5f5f538;
   --text-primary: #000000;
   --text-secondary: #666666;
   --navbar-bg: rgba(2, 2, 2, 0.123);
@@ -18,6 +19,7 @@
   --bg-primary: #1a1a1a;
     --bg-image: url("/bg-dark.png");
   --bg-secondary: #2d2d2d;
+  --bg-secondary-card: #2d2d2d36;
   --text-primary: #ffffff;
   --text-secondary: #cccccc;
   --navbar-bg: rgba(255, 255, 255, 0.123);

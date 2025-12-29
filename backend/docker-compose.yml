@@ -28,6 +28,8 @@ services:
       MYSQL_HOST: inventory_mysql
       MYSQL_PASSWORD: root
       MYSQL_PORT: 3306
+    volumes:
+      - product_images:/app/uploads/products
     depends_on:
       inventory_mysql:
         condition: service_healthy
@@ -40,3 +42,4 @@ networks:
 
 volumes:
   mysql_data:
+  product_images:

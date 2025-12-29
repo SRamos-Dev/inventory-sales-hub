@@ -55,7 +55,7 @@ public class ProductController {
     public ResponseEntity<ApiResponseDTO<List<ProductDTO>>> getAllProducts() {
         List<ProductDTO> products = productRepository.findAll()
                 .stream()
-                .map(p -> modelMapper.map(p, ProductDTO.class))
+                .map(ProductDTO::new)
                 .collect(Collectors.toList());
         return ResponseEntity.ok(new ApiResponseDTO<>(true, "Products retrieved successfully", products));
     }
