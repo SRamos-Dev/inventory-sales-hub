@@ -1,0 +1,93 @@
+.cart-overlay {
+    position: fixed;        /* Se queda fijo en la pantalla */
+    inset: 0;              /* top:0, right:0, bottom:0, left:0 - cubre toda la pantalla */
+    background: rgba(0, 0, 0, 0.5);  /* Negro semi-transparente */
+    z-index: 999;          /* Por encima de todo */
+    visibility: hidden;     /* Invisible por defecto */
+    opacity: 0;            /* Transparente por defecto */
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+    z-index: 1001;
+}
+
+.cart-overlay.open {
+    visibility: visible;    /* Se hace visible */
+    opacity: 1;            /* Se vuelve opaco */
+}
+
+.cart-sidebar {
+    position: fixed;
+    right: 0;              /* Pegado al lado derecho */
+    top: 0;
+    height: 100vh;         /* Altura completa de la pantalla */
+    width: 400px;          /* Ancho fijo */
+    background: var(--bg-primary);
+    box-shadow: -2px 0 10px rgba(0, 0, 0, 0.2);  /* Sombra a la izquierda */
+    transform: translateX(100%);  /* Fuera de vista (100% a la derecha) */
+    transition: transform 0.3s ease;
+    display: flex;
+    flex-direction: column;
+}
+
+.cart-sidebar.open {
+    transform: translateX(0);  /* En su posición normal (visible) */
+}
+
+.cart-header {
+    display: flex;
+    justify-content: space-between;  /* Título a la izquierda, botón a la derecha */
+    align-items: center;
+    padding: 20px;
+    border-bottom: 1px solid #eee;
+}
+
+.cart-items {
+    flex: 1;              /* Ocupa todo el espacio disponible */
+    overflow-y: auto;     /* Scroll vertical si hay muchos productos */
+    padding: 20px;
+}
+
+.cart-item {
+    display: flex;              /* Los hijos se alinean en fila */
+    flex-direction: row;        /* Horizontal (por defecto) */
+    align-items: center;        /* Centrados verticalmente */
+    gap: 15px;                  /* Espacio entre elementos */
+    padding: 15px;
+    border-bottom: 1px solid #eee;  /* Línea separadora */
+}
+
+.cart-item-image {
+    width: 80px;               /* Ancho fijo */
+    height: 80px;              /* Alto fijo */
+    object-fit: cover;         /* La imagen se ajusta sin deformarse */
+    border-radius: 8px;        /* Bordes redondeados */
+    flex-shrink: 0;            /* No se encoge si falta espacio */
+}
+
+.cart-item-info {
+    flex: 1;                   /* Ocupa todo el espacio disponible */
+    display: flex;
+    flex-direction: column;    /* Los textos apilados verticalmente */
+    gap: 5px;
+}
+
+.cart-item-remove {
+    background: transparent;
+    border: none;
+    color: #ff4444;           /* Rojo para eliminar */
+    cursor: pointer;
+    padding: 8px;
+    transition: transform 0.2s;
+}
+
+.cart-item-remove:hover {
+    transform: scale(1.1);    /* Se agranda un poco al hover */
+}
+
+.cart-footer {
+    padding: 20px;
+    border-top: 1px solid #eee;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+}

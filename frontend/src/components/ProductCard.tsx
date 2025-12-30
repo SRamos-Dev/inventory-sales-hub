@@ -1,4 +1,5 @@
 import type { Product } from "../types/product.types";
+import { useCart } from "../context/CartContext";
 import '../styles/ProductCard.css'
 
 interface ProductCardProps {
@@ -6,6 +7,7 @@ interface ProductCardProps {
 }
 
 export const ProductCard = ({product}: ProductCardProps) => {
+    const {addToCart} = useCart()
     const imageUrl = product.imageUrl
         ? (product.imageUrl.startsWith('http') ? product.imageUrl : `http://localhost:8080/uploads/products/${product.imageUrl}`)
         : null;
@@ -29,7 +31,7 @@ export const ProductCard = ({product}: ProductCardProps) => {
                     
                     <button 
                         className="add-cart-btn"
-                        onClick={() => alert(`Añadido ${product.name} al carrito`)}
+                        onClick={() => addToCart(product)}
                     >
                         Añadir al carrito
                     </button>

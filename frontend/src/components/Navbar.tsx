@@ -3,11 +3,14 @@ import { useState, useRef, useEffect } from "react";
 import { useAuth } from "../context/AuthContext";
 import { useTheme } from "../context/ThemeContext";
 import '../styles/Navbar.css';
+import { useCart } from "../context/CartContext";
 
 
 export function Navbar() {
-    const {user, logout} = useAuth();  // ⬅️ Dentro del componente
+    const {user, logout} = useAuth();
     const {theme, toggleTheme} = useTheme();
+    const {cart, toggleCart} = useCart()
+
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const menuRef = useRef<HTMLDivElement>(null);
 
@@ -64,6 +67,10 @@ export function Navbar() {
                         <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
                     </svg>
                 )}
+            </button>
+            <button onClick={toggleCart} className="cart-button">
+                {cart.length > 0 && <span className="cart-badge">{cart.length}</span>}
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="#ffffffff" d="M0 1h4.764l.545 2h18.078l-3.666 11H7.78l-.5 2H22v2H4.72l1.246-4.989L3.236 3H0V1Zm7.764 11h10.515l2.334-7H5.855l1.909 7ZM4 21a2 2 0 1 1 4 0a2 2 0 0 1-4 0Zm14 0a2 2 0 1 1 4 0a2 2 0 0 1-4 0Z"/></svg>
             </button>
 
             {user ? (

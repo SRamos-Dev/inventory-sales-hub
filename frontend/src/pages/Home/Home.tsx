@@ -1,5 +1,4 @@
-import React, { useEffect } from "react";
-import { Link } from "react-router-dom";
+import { useEffect } from "react";
 import '../../styles/Home.css';
 import { useState } from "react";
 import { ProductCard } from "../../components/ProductCard";

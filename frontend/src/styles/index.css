@@ -34,6 +34,7 @@
   margin: 0;
   padding: 0;
   box-sizing: border-box;
+  scrollbar-width: none;
 }
 
 body {
@@ -50,6 +51,7 @@ body {
   -moz-osx-font-smoothing: grayscale;
   transition: background-image 0.3s ease;
   min-height: 100vh;
+
 }
 
 html {
